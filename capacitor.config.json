@@ -1,0 +1,9 @@
+{
+  "appId": "com.bsczoology.firstyear",
+  "appName": "BSC Zoology",
+  "webDir": "www",
+  "backgroundColor": "#0A0F1E",
+  "android": {
+    "backgroundColor": "#0A0F1E"
+  }
+}
