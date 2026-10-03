@@ -26,12 +26,32 @@ jobs:
       - name: Install packages
         run: npm install
 
+      - name: Install icon tool
+        run: npm install @capacitor/assets --no-save
+
       - name: Add Android project
         run: npx cap add android
 
+      - name: Check icon files
+        run: |
+          ls -la assets
+          test -f assets/icon-only.png
+          test -f assets/icon-foreground.png
+
       - name: Make app icons
         # Icon ka background colour yahan hai (dono jagah same rakho)
-        run: npx capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#ffffff' --iconBackgroundColorDark '#ffffff'
+        run: npx capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#0B2521' --iconBackgroundColorDark '#0B2521'
+
+      - name: Check icons made
+        run: find android/app/src/main/res -name "ic_launcher*" | head -20
+
+      - name: Shorten PDF names
+        run: |
+          cd www/pdfs
+          for f in [0-9]*_*.pdf; do
+            mv "$f" "${f%%_*}.pdf"
+          done
+          ls
 
       - name: Copy www into Android
         run: npx cap sync android
