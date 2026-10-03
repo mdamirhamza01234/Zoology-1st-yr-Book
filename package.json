@@ -1,0 +1,17 @@
+{
+  "name": "bsc-zoology-1st-year",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BSC Zoology 1st Year - offline book app",
+  "scripts": {
+    "icons": "capacitor-assets generate --android --assetPath assets --iconBackgroundColor #03201A --iconBackgroundColorDark #03201A"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/core": "^6.1.2"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^6.1.2"
+  }
+}
