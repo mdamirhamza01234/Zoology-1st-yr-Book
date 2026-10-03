@@ -31,7 +31,7 @@ jobs:
 
       - name: Make app icons
         # Icon ka background colour yahan hai (dono jagah same rakho)
-        run: npx capacitor-assets generate --android --assetPath assets --iconBack... (APNI PURANI LINE YAHAN RAKHO)
+        run: npx capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#ffffff' --iconBackgroundColorDark '#ffffff'
 
       - name: Copy www into Android
         run: npx cap sync android
