@@ -31,7 +31,7 @@ jobs:
 
       - name: Make app icons
         # Icon ka background colour yahan hai (dono jagah same rakho)
-        run: npx capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#03201A' --iconBackgroundColorDark '#03201A'
+        run: npx capacitor-assets generate --android --assetPath assets --iconBack... (APNI PURANI LINE YAHAN RAKHO)
 
       - name: Copy www into Android
         run: npx cap sync android
@@ -47,4 +47,3 @@ jobs:
         with:
           name: BSC-Zoology-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          
