@@ -1,1 +1,393 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A0F1E">
+<title>Zoology</title>
+<style>
+  :root{
+    --bg:#0A0F1E; --bar:#121A35; --card:#111A38; --line:rgba(255,255,255,.1);
+    --ink:#F4F6FB; --soft:#8D97B8; --faint:#5C6684;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);}
+  body{min-height:100vh; -webkit-text-size-adjust:100%;}
+  [hidden]{display:none !important;}
+  button{font-family:var(--sans); color:inherit; border:none; background:none; cursor:pointer; text-align:left;}
+  svg{width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none;}
 
+  /* soft background glow so the dark screen is not flat */
+  body::before{
+    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:
+      radial-gradient(520px 320px at 100% -4%, rgba(124,92,250,.28), transparent 70%),
+      radial-gradient(460px 300px at -10% 18%, rgba(34,199,216,.16), transparent 70%),
+      var(--bg);
+  }
+
+  .wrap{max-width:640px; margin:0 auto; padding:0 16px calc(40px + env(safe-area-inset-bottom));}
+
+  /* ---------- home ---------- */
+  .hero{padding:calc(26px + env(safe-area-inset-top)) 4px 18px;}
+  .hero h1{margin:0; font-size:44px; line-height:1; font-weight:800; letter-spacing:-1.2px;}
+  .hero h1 span{
+    background:linear-gradient(100deg,#B7A6FF 0%,#22C7D8 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero p{margin:10px 0 0; color:var(--soft); font-size:14.5px; line-height:1.5;}
+  .stats{display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;}
+  .stat{border:1px solid var(--line); background:rgba(255,255,255,.05); border-radius:999px; padding:7px 13px; font-size:12.5px; font-weight:700; color:#C9D2F5;}
+
+  .search{
+    position:sticky; top:0; z-index:5; margin:6px -16px 14px; padding:10px 16px;
+    padding-top:calc(10px + env(safe-area-inset-top));
+    background:linear-gradient(var(--bg) 70%, rgba(10,15,30,0));
+  }
+  .sbox{display:flex; align-items:center; gap:10px; background:var(--bar); border:1px solid var(--line); border-radius:16px; padding:0 14px;}
+  .sbox svg{color:var(--soft); width:20px; height:20px;}
+  .sbox input{flex:1; min-width:0; background:none; border:none; outline:none; color:var(--ink); font-size:15.5px; padding:14px 0; font-family:var(--sans);}
+  .sbox input::placeholder{color:var(--faint);}
+  .sbox .clr{width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--soft);}
+  .sbox .clr svg{width:16px; height:16px;}
+  .sbox:focus-within{border-color:rgba(124,92,250,.7);}
+
+  .sec{margin:22px 4px 10px; font-size:13px; font-weight:700; color:var(--soft);}
+
+  /* unit buttons */
+  .unit{
+    --c:#7C5CFA;
+    position:relative; width:100%; display:flex; align-items:center; gap:14px; padding:14px 14px 14px 14px; margin-bottom:11px;
+    border-radius:20px; overflow:hidden;
+    background:linear-gradient(120deg, color-mix(in srgb,var(--c) 26%, #111A38) 0%, var(--card) 62%);
+    border:1px solid color-mix(in srgb,var(--c) 45%, transparent);
+    box-shadow:0 10px 24px -14px color-mix(in srgb,var(--c) 70%, #000);
+    transition:transform .12s ease, border-color .12s ease;
+  }
+  .unit:active{transform:scale(.975);}
+  .unit .tile{
+    width:58px; height:58px; border-radius:17px; display:flex; align-items:center; justify-content:center; font-size:30px; flex:none;
+    background:color-mix(in srgb,var(--c) 38%, #0A0F1E); border:1px solid color-mix(in srgb,var(--c) 70%, transparent);
+  }
+  .unit .tx{flex:1; min-width:0;}
+  .unit .un{font-size:12px; font-weight:800; color:var(--c); filter:brightness(1.35);}
+  .unit .ut{font-size:16.5px; font-weight:700; line-height:1.25; margin-top:2px;}
+  .unit .um{font-size:12.5px; color:var(--soft); margin-top:5px;}
+  .unit .chev{color:var(--soft);}
+
+  .stagger .unit{animation:rise .45s cubic-bezier(.2,.8,.2,1) both;}
+  @keyframes rise{from{opacity:0; transform:translateY(14px);}to{opacity:1; transform:none;}}
+  @media (prefers-reduced-motion:reduce){.stagger .unit{animation:none;} .unit,.ch{transition:none;}}
+
+  /* extras */
+  .extras{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .extra{
+    display:flex; align-items:center; gap:10px; padding:13px; border-radius:16px; background:var(--card); border:1px solid var(--line);
+    font-size:13.5px; font-weight:700; line-height:1.25;
+  }
+  .extra:active{background:#17214a;}
+  .extra .ei{font-size:22px;}
+  .extra.wide{grid-column:1 / -1;}
+
+  /* ---------- unit page ---------- */
+  .uhead{
+    position:sticky; top:0; z-index:6; display:flex; align-items:center; gap:6px;
+    padding:8px 10px 8px 6px; padding-top:calc(8px + env(safe-area-inset-top));
+    background:var(--bar); border-bottom:1px solid var(--line);
+  }
+  .back{width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center;}
+  .back:active{background:rgba(255,255,255,.1);}
+  .uhead .ht{flex:1; min-width:0; font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+
+  .ubanner{
+    --c:#7C5CFA; margin:16px 0 8px; padding:20px 18px; border-radius:24px; position:relative; overflow:hidden;
+    background:linear-gradient(135deg, color-mix(in srgb,var(--c) 55%, #0A0F1E) 0%, color-mix(in srgb,var(--c) 14%, #0A0F1E) 100%);
+    border:1px solid color-mix(in srgb,var(--c) 55%, transparent);
+  }
+  .ubanner .big{position:absolute; right:-6px; top:-14px; font-size:104px; opacity:.2; line-height:1; pointer-events:none;}
+  .ubanner .un{font-size:13px; font-weight:800; opacity:.85;}
+  .ubanner h2{margin:4px 0 8px; font-size:24px; line-height:1.15; font-weight:800; letter-spacing:-.4px; max-width:84%;}
+  .ubanner p{margin:0; font-size:13px; opacity:.8;}
+
+  .ch{
+    --c:#7C5CFA; width:100%; display:flex; align-items:center; gap:13px; padding:13px 14px; margin-top:10px;
+    border-radius:16px; background:var(--card); border:1px solid var(--line); transition:transform .12s ease, background .12s ease;
+  }
+  .ch:active{transform:scale(.98); background:color-mix(in srgb,var(--c) 22%, #111A38);}
+  .ch .no{
+    min-width:50px; height:38px; padding:0 8px; border-radius:11px; display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:800; color:#fff; background:color-mix(in srgb,var(--c) 55%, #0A0F1E);
+  }
+  .ch .ct{flex:1; min-width:0; font-size:15.5px; font-weight:600; line-height:1.3;}
+  .ch .pgn{font-size:12px; color:var(--soft); font-weight:700; white-space:nowrap;}
+  .ch .go{color:var(--soft);}
+  .ch .src{display:block; font-size:11.5px; color:var(--soft); font-weight:600; margin-top:3px;}
+
+  .empty{text-align:center; color:var(--soft); font-size:14.5px; padding:40px 20px; line-height:1.6;}
+  .foot{margin:30px 0 0; text-align:center; font-size:12px; color:var(--faint);}
+</style>
+</head>
+<body>
+
+<!-- ============ HOME ============ -->
+<main id="home" class="wrap">
+  <section class="hero">
+    <h1><span>Zoology</span></h1>
+    <p>Kisi bhi unit par dabaiye, phir chapter chuniye &mdash; PDF turant khul jayega.</p>
+    <div class="stats">
+      <div class="stat" id="statUnits"></div>
+      <div class="stat" id="statCh"></div>
+      <div class="stat">Offline</div>
+    </div>
+  </section>
+
+  <div class="search">
+    <label class="sbox">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="q" type="search" placeholder="Chapter dhundhiye (jaise Cockroach)" autocomplete="off" enterkeyhint="search">
+      <button class="clr" id="qClear" aria-label="Clear" hidden><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </label>
+  </div>
+
+  <div id="homeList"></div>
+  <div id="extrasBox">
+    <div class="sec">Aur bhi</div>
+    <div class="extras" id="extras"></div>
+  </div>
+  <p class="foot">Zoology &middot; Offline Book</p>
+</main>
+
+<!-- ============ UNIT PAGE ============ -->
+<div id="unitPage" hidden>
+  <header class="uhead">
+    <button class="back" id="backBtn" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+    <div class="ht" id="uhTitle"></div>
+  </header>
+  <div class="wrap">
+    <div class="ubanner" id="ubanner"></div>
+    <div id="chList"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* =====================================================================
+   SETTINGS  (sirf yahi badalna ho to badlo)
+   - PDF_DIR  : jis folder me chapter ke PDF rakhe hain
+   - PDF_VIEWER : aapki viewer file ka naam
+   - Chapter ka PDF file naam = chapter number + ".pdf"
+        Chapter 1.1  ->  pdfs/1.1.pdf
+        Chapter 7.4  ->  pdfs/7.4.pdf
+   ===================================================================== */
+var PDF_DIR    = 'pdfs/';
+var PDF_VIEWER = 'pdf-viewer.html';
+
+/* Unit ke naam, rang, icon aur chapters
+   chapter = [number, name, start page] */
+var UNITS = [
+  { n:1, color:'#22C7D8', icon:'🌍', title:'Diversity of Living World', pages:'1–28', ch:[
+    ['1.1','What is Life?',3],
+    ['1.2','Nature, Scope and Meaning of Zoology',6],
+    ['1.3','Branches of Zoology',6],
+    ['1.4','Need for Classification',8],
+    ['1.5','Biological Classification',8],
+    ['1.6','Levels and Hierarchy of Classification',9],
+    ['1.7','Nomenclature',11],
+    ['1.8','Species Concept',12],
+    ['1.9','Kingdom Animalia',13],
+    ['1.10','Biodiversity',16]
+  ]},
+  { n:2, color:'#7C5CFA', icon:'🧬', title:'Structural Organization in Animals', pages:'29–62', ch:[
+    ['2.1','Levels of Organization',31],
+    ['2.2','Importance of Symmetry',34],
+    ['2.3','Coelom',36],
+    ['2.4','Animal Tissues',40]
+  ]},
+  { n:3, color:'#FF8A5B', icon:'🪸', title:'Animal Diversity - I (Invertebrate Phyla)', pages:'63–92', ch:[
+    ['3.1','Phylum - Porifera',65],
+    ['3.2','Phylum - Cnidaria',66],
+    ['3.3','Phylum - Ctenophora',68],
+    ['3.4','Phylum - Platyhelminthes',69],
+    ['3.5','Phylum - Nematoda',71],
+    ['3.6','Phylum - Annelida',72],
+    ['3.7','Phylum - Arthropoda',79],
+    ['3.8','Phylum - Molusca',82],
+    ['3.9','Phylum - Echinodermata',85],
+    ['3.10','Phylum - Hemichordata',87]
+  ]},
+  { n:4, color:'#3DDC91', icon:'🐟', title:'Animal Diversity - II (Chordata Phylum)', pages:'93–124', ch:[
+    ['4.1','Phylum - Chordata',95],
+    ['4.2','Subphylum - Cephalochordata',98],
+    ['4.3','Subphylum - Vertebrata/Craniata',98],
+    ['4.4','Super Class : Agnatha',99],
+    ['4.5','Super Class : Gnathostomata',99],
+    ['4.6','Tetrapoda',103]
+  ]},
+  { n:5, color:'#FFC247', icon:'🦶', title:'Locomotion and Reproduction', pages:'125–140', ch:[
+    ['5.1','Locomotion in Protozoa',127],
+    ['5.2','Flagellar and Ciliary movement',132],
+    ['5.3','Asexual Reproduction',135],
+    ['5.4','Sexual Reproduction',138]
+  ]},
+  { n:6, color:'#FF6B8A', icon:'🩺', title:'Biology in Human Welfare', pages:'141–174', ch:[
+    ['6.1','Parasitism and Parasitic adaptations',143],
+    ['6.2','Health and Disease',147],
+    ['6.3','Brief Account of some other Diseases',163],
+    ['6.4','Tobacco, Drugs and Alcohol abuse (TDA Abuse)',165]
+  ]},
+  { n:7, color:'#B58A5A', icon:'🪳', title:'Periplaneta americana (Cockroach)', pages:'175–202', ch:[
+    ['7.1','Habitat and Habit',176],
+    ['7.2','External Features (Morphology)',176],
+    ['7.3','Locomotion',181],
+    ['7.4','Digestive System',181],
+    ['7.5','Circulatory System',184],
+    ['7.6','Respiratory System',187],
+    ['7.7','Excretory System',189],
+    ['7.8','Nervous System and Sense organs',191],
+    ['7.9','Reproductive System',195]
+  ]},
+  { n:8, color:'#4FC3F7', icon:'🌿', title:'Ecology and Environment', pages:'203–269', ch:[
+    ['8.1','Organisms and Environment',206],
+    ['8.2','Ecosystem - Elementary Aspects',209],
+    ['8.3','Population Interactions',220],
+    ['8.4','Ecosystems and Their Components',228],
+    ['8.5','Food Chains, Food Web, Productivity and Energy Flow',230],
+    ['8.6','Nutrient Cycles',238],
+    ['8.7','Population',241],
+    ['8.8','Environmental Issues',246]
+  ]}
+];
+
+/* Extra PDFs: [icon, name, file, wide?] */
+var EXTRAS = [
+  ['📑','Index / Contents','00_Index_Contents.pdf',true],
+  ['📚','References','references.pdf',false],
+  ['📝','Model Question Paper','model-question-paper.pdf',false]
+];
+
+/* ------------------------------------------------------------------ */
+var $ = function(id){ return document.getElementById(id); };
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+var ROMAN = ['','I','II','III','IV','V','VI','VII','VIII','IX','X'];
+var CHEV = '<svg class="chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>';
+var OPEN = '<svg class="go" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>';
+
+function pdfLink(file, title){
+  return PDF_VIEWER + '?f=' + encodeURIComponent(PDF_DIR + file) + '&t=' + encodeURIComponent(title);
+}
+function openPdf(file, title){ location.href = pdfLink(file, title); }
+
+/* ----- stats ----- */
+var totalCh = UNITS.reduce(function(a, u){ return a + u.ch.length; }, 0);
+$('statUnits').textContent = UNITS.length + ' Units';
+$('statCh').textContent = totalCh + ' Chapters';
+
+/* ----- home: unit buttons ----- */
+function renderUnits(){
+  var box = $('homeList'); box.className = 'stagger'; box.innerHTML = '';
+  UNITS.forEach(function(u, i){
+    var b = document.createElement('button');
+    b.className = 'unit'; b.style.setProperty('--c', u.color); b.style.animationDelay = (i * 45) + 'ms';
+    b.innerHTML =
+      '<div class="tile">' + u.icon + '</div>' +
+      '<div class="tx"><div class="un">UNIT ' + ROMAN[u.n] + '</div>' +
+      '<div class="ut">' + esc(u.title) + '</div>' +
+      '<div class="um">' + u.ch.length + ' chapters &nbsp;|&nbsp; Pages ' + u.pages + '</div></div>' + CHEV;
+    b.onclick = function(){ location.hash = 'unit-' + u.n; };
+    box.appendChild(b);
+  });
+}
+
+/* ----- home: extra buttons ----- */
+function renderExtras(){
+  var box = $('extras'); box.innerHTML = '';
+  EXTRAS.forEach(function(e){
+    var b = document.createElement('button');
+    b.className = 'extra' + (e[3] ? ' wide' : '');
+    b.innerHTML = '<span class="ei">' + e[0] + '</span><span>' + esc(e[1]) + '</span>';
+    b.onclick = function(){ openPdf(e[2], e[1]); };
+    box.appendChild(b);
+  });
+}
+
+/* ----- home: search results ----- */
+function renderSearch(text){
+  var t = text.trim().toLowerCase(), box = $('homeList');
+  box.className = ''; box.innerHTML = '';
+  var found = 0;
+  UNITS.forEach(function(u){
+    u.ch.forEach(function(c){
+      if((c[0] + ' ' + c[1]).toLowerCase().indexOf(t) === -1 && u.title.toLowerCase().indexOf(t) === -1) return;
+      found++;
+      box.appendChild(chapterButton(u, c, true));
+    });
+  });
+  if(!found) box.innerHTML = '<div class="empty">Koi chapter nahi mila.<br>Dusra shabd likh kar dekhiye.</div>';
+}
+
+function chapterButton(u, c, withUnit){
+  var b = document.createElement('button');
+  b.className = 'ch'; b.style.setProperty('--c', u.color);
+  b.innerHTML =
+    '<div class="no">' + c[0] + '</div>' +
+    '<div class="ct">' + esc(c[1]) +
+      (withUnit ? '<span class="src">Unit ' + ROMAN[u.n] + ' &middot; ' + esc(u.title) + '</span>' : '') +
+    '</div>' +
+    '<div class="pgn">p. ' + c[2] + '</div>' + OPEN;
+  b.onclick = function(){ openPdf(c[0] + '.pdf', c[0] + '  ' + c[1]); };
+  return b;
+}
+
+/* ----- unit page ----- */
+function showUnit(n){
+  var u = UNITS.filter(function(x){ return x.n === n; })[0];
+  if(!u){ location.hash = ''; return; }
+  $('uhTitle').textContent = 'Unit ' + ROMAN[u.n] + ' : ' + u.title;
+  var ub = $('ubanner'); ub.style.setProperty('--c', u.color);
+  ub.innerHTML =
+    '<div class="big">' + u.icon + '</div>' +
+    '<div class="un">UNIT ' + ROMAN[u.n] + '</div>' +
+    '<h2>' + esc(u.title) + '</h2>' +
+    '<p>' + u.ch.length + ' chapters &nbsp;|&nbsp; Pages ' + u.pages + '</p>';
+  var list = $('chList'); list.innerHTML = '';
+  u.ch.forEach(function(c){ list.appendChild(chapterButton(u, c, false)); });
+}
+
+/* ----- routing (Android back button bhi chalega) ----- */
+var homeScroll = 0;
+function route(){
+  var m = /^#unit-(\d+)$/.exec(location.hash);
+  if(m){
+    if($('unitPage').hidden) homeScroll = window.scrollY;
+    showUnit(parseInt(m[1], 10));
+    $('home').hidden = true; $('unitPage').hidden = false;
+    window.scrollTo(0, 0);
+  } else {
+    var wasUnit = !$('unitPage').hidden;
+    $('unitPage').hidden = true; $('home').hidden = false;
+    if(wasUnit) window.scrollTo(0, homeScroll);
+  }
+}
+window.addEventListener('hashchange', route);
+$('backBtn').onclick = function(){
+  if(history.length > 1) history.back(); else location.hash = '';
+};
+
+/* ----- search box ----- */
+var q = $('q'), qClear = $('qClear');
+function onSearch(){
+  var v = q.value; qClear.hidden = !v.trim();
+  if(v.trim()){ renderSearch(v); $('extrasBox').hidden = true; }
+  else { renderUnits(); $('extrasBox').hidden = false; }
+}
+q.addEventListener('input', onSearch);
+qClear.onclick = function(){ q.value = ''; onSearch(); q.focus(); };
+
+renderUnits(); renderExtras(); route();
+})();
+</script>
+</body>
+</html>
