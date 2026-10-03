@@ -47,7 +47,7 @@
   /* ---- scroller / pages ---- */
   #scroller{flex:1; position:relative; overflow:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; touch-action:pan-x pan-y; background:#080C18;}
   #pages{width:max-content; min-width:100%; padding:10px 8px 150px; transform-origin:0 0;}
-  .page{position:relative; margin:0 auto 10px; background:#fff; box-shadow:0 2px 14px rgba(0,0,0,.45); overflow:hidden;}
+  .page{position:relative; margin:0 auto 10px; background:#fff; box-shadow:0 2px 14px rgba(0,0,0,.45); overflow:hidden; contain:strict;}
   .page canvas{position:absolute; left:0; top:0; width:100%; height:100%; display:block;}
   .page .hlc{mix-blend-mode:multiply; pointer-events:none;}
   .page .penc{pointer-events:none;}
@@ -292,7 +292,7 @@ var K_ANN = 'vpair_ann_' + FK, K_BM = 'vpair_bm_' + FK, K_POS = 'vpair_pos_' + F
 /* ---------------- state ---------------- */
 var pdf = null, N = 0, pages = [];
 var scroller = $('scroller'), pagesEl = $('pages');
-var zoom = 1, MIN_Z = 1, MAX_Z = 5, baseW = 0;
+var zoom = 1, MIN_Z = 1, MAX_Z = 8, baseW = 0;
 var annotating = false, annVisible = true, tool = 'pen';
 var COLORS = {
   pen: ['#E53935', '#1E88E5', '#43A047', '#212121', '#FB8C00', '#8E24AA'],
@@ -357,9 +357,9 @@ function buildPages(){
   var frag = document.createDocumentFragment();
   pages.forEach(function(p){
     var el = document.createElement('div'); el.className = 'page'; el.dataset.n = p.n;
-    p.pdfc = mk('canvas', 'pdfc'); p.hlc = mk('canvas', 'hlc'); p.penc = mk('canvas', 'penc');
+    p.pdfb = mk('canvas', 'pdfc pdfb'); p.pdfc = mk('canvas', 'pdfc'); p.hlc = mk('canvas', 'hlc'); p.penc = mk('canvas', 'penc');
     p.hll = mk('div', 'hll'); p.tl = mk('div', 'tl'); p.ov = mk('div', 'ov');
-    [p.pdfc, p.hlc, p.penc, p.hll, p.tl, p.ov].forEach(function(c){ el.appendChild(c); });
+    [p.pdfb, p.pdfc, p.hlc, p.penc, p.hll, p.tl, p.ov].forEach(function(c){ el.appendChild(c); });
     p.el = el; frag.appendChild(el);
     attachDraw(p);
   });
@@ -397,7 +397,7 @@ function loadSizesBatch(start){
         p.pw = vp.width; p.ph = vp.height;
         var h = p.cw * p.ph / p.pw, d = h - p.chh;
         if(p.top + p.chh <= st) adj += d;
-        p.chh = h; p.el.style.height = h + 'px'; p.rendered = false; changed = true;
+        p.chh = h; p.el.style.height = h + 'px'; p.rendered = false; p.baseOK = false; changed = true;
       }
     }
     if(changed){ updateTops(); if(adj) scroller.scrollTop = st + adj; renderVisible(); }
@@ -406,19 +406,35 @@ function loadSizesBatch(start){
 }
 
 /* ---------------- rendering ---------------- */
+function visRect(p, mxf, myf){
+  var vw = scroller.clientWidth, vh = scroller.clientHeight;
+  var x0 = scroller.scrollLeft - p.el.offsetLeft, y0 = scroller.scrollTop - p.top;
+  var mx = vw * mxf, my = vh * myf;
+  x0 -= mx; y0 -= my;
+  var x1 = x0 + vw + 2 * mx, y1 = y0 + vh + 2 * my;
+  x0 = Math.max(0, x0); y0 = Math.max(0, y0); x1 = Math.min(p.cw, x1); y1 = Math.min(p.chh, y1);
+  return { x: x0, y: y0, w: Math.max(1, x1 - x0), h: Math.max(1, y1 - y0) };
+}
+function regionCovers(p){
+  if(!p.reg || p.regZ !== zoom) return false;
+  var v = visRect(p, 0, 0), r = p.reg;
+  return v.x >= r.x0 * p.cw - 2 && v.y >= r.y0 * p.chh - 2 && v.x + v.w <= r.x1 * p.cw + 2 && v.y + v.h <= r.y1 * p.chh + 2;
+}
 function renderVisible(){
   if(!pages.length) return;
-  var vh = scroller.clientHeight, m = vh * 1.0, st = scroller.scrollTop;
+  var vh = scroller.clientHeight, m = vh * 1.0, m2 = vh * 2.2, st = scroller.scrollTop;
   for(var i = 0; i < pages.length; i++){
     var p = pages[i], top = p.top - st, bot = top + p.chh;
     var vis = bot > -m && top < vh + m;
     if(vis && !p.rendered) renderPage(p);
-    else if(!vis && (p.rendered || p.hasCanvas)) releasePage(p);
+    else if(vis && p.mode === 'region' && p.hasCanvas && !p.busy && !p.queued && !regionCovers(p)) renderPage(p);
+    else if(!vis && (p.rendered || p.hasCanvas) && !(bot > -m2 && top < vh + m2)) releasePage(p);
   }
 }
 
-/* ek saath sirf 2 page render hote hain, jo screen ke sabse paas ho wo pehle */
-var rq = [], activeR = 0, MAXR = 2;
+/* ek saath 3 page render hote hain, jo screen ke sabse paas ho wo pehle */
+var rq = [], activeR = 0, MAXR = 3;
+var CAP = 7e6;   // ek canvas me max pixels (zyada zoom par sirf dikhne wala hissa crisp render hota hai)
 function renderPage(p){
   p.rendered = true;
   if(p.task){ try { p.task.cancel(); } catch(e){} p.task = null; }
@@ -438,38 +454,93 @@ function pumpQ(){
     doRender(p);
   }
 }
+function placeCv(cv, x0, y0, x1, y1){
+  var s = cv.style;
+  if(x0 <= 0 && y0 <= 0 && x1 >= 1 && y1 >= 1){ s.left = '0'; s.top = '0'; s.width = '100%'; s.height = '100%'; }
+  else { s.left = (x0 * 100) + '%'; s.top = (y0 * 100) + '%'; s.width = ((x1 - x0) * 100) + '%'; s.height = ((y1 - y0) * 100) + '%'; }
+}
+function clearBase(p){ if(p.pdfb.width){ p.pdfb.width = 0; p.pdfb.height = 0; } p.baseOK = false; }
+/* kam-resolution poora page (zyada zoom par peeche rehta hai, taaki scroll karte waqt safed khali jagah na dikhe) */
+function makeBase(p, rv, cb){
+  var fb = Math.min(1.5, Math.sqrt(2e6 / (p.cw * p.chh)));
+  var vp = p.page.getViewport({ scale: (p.cw / p.pw) * fb });
+  var tmp = document.createElement('canvas');
+  tmp.width = Math.max(1, Math.floor(vp.width)); tmp.height = Math.max(1, Math.floor(vp.height));
+  var task;
+  try { task = p.page.render({ canvasContext: tmp.getContext('2d'), viewport: vp }); } catch(err){ cb(); return; }
+  p.task = task;
+  task.promise.then(function(){
+    if(rv === p.rv){
+      p.pdfb.width = tmp.width; p.pdfb.height = tmp.height;
+      p.pdfb.getContext('2d').drawImage(tmp, 0, 0);
+      placeCv(p.pdfb, 0, 0, 1, 1); p.baseOK = true;
+    }
+  }).catch(function(){}).then(cb);
+}
 function doRender(p){
-  var rv = ++p.rv; activeR++;
+  var rv = ++p.rv; activeR++; p.busy = true;
   var finished = false;
-  function done(){ if(finished) return; finished = true; activeR--; pumpQ(); }
+  function done(){ if(finished) return; finished = true; p.busy = false; activeR--; pumpQ(); }
   loadPage(p).then(function(){
     if(rv !== p.rv || !p.rendered){ done(); return; }
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    var f = Math.min(dpr, Math.sqrt(7e6 / (p.cw * p.chh)));
+    var dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    var full = p.cw * p.chh * dpr * dpr <= CAP;
+    var rx = 0, ry = 0, rw = p.cw, rh = p.chh, f = dpr;
+    if(!full){
+      var v = visRect(p, 0.5, 0.6);
+      rx = v.x; ry = v.y; rw = v.w; rh = v.h;
+      f = Math.min(dpr, Math.sqrt(CAP / (rw * rh)));
+    }
     f = Math.max(f, 0.5);
-    var vp = p.page.getViewport({ scale: (p.cw / p.pw) * f });
-    var tmp = document.createElement('canvas');
-    tmp.width = Math.floor(vp.width); tmp.height = Math.floor(vp.height);
-    var task;
-    try { task = p.page.render({ canvasContext: tmp.getContext('2d'), viewport: vp }); } catch(err){ p.rendered = false; done(); return; }
-    p.task = task;
-    task.promise.then(function(){
-      if(rv !== p.rv) return;
-      p.pdfc.width = tmp.width; p.pdfc.height = tmp.height;
-      p.pdfc.getContext('2d').drawImage(tmp, 0, 0);
-      p.hasCanvas = true;
-      p.hlc.width = p.penc.width = tmp.width; p.hlc.height = p.penc.height = tmp.height;
-      redrawAnn(p);
-      setTimeout(function(){ buildText(p, rv); }, 0);
-    }).catch(function(){}).then(done);
+    function go(){
+      if(rv !== p.rv || !p.rendered){ done(); return; }
+      var vp = p.page.getViewport({ scale: (p.cw / p.pw) * f });
+      var tmp = document.createElement('canvas');
+      tmp.width = Math.max(1, Math.round(rw * f)); tmp.height = Math.max(1, Math.round(rh * f));
+      var prm = { canvasContext: tmp.getContext('2d'), viewport: vp };
+      if(!full) prm.transform = [1, 0, 0, 1, -rx * f, -ry * f];
+      var task;
+      try { task = p.page.render(prm); } catch(err){ p.rendered = false; done(); return; }
+      p.task = task;
+      task.promise.then(function(){
+        if(rv !== p.rv) return;
+        p.pdfc.width = tmp.width; p.pdfc.height = tmp.height;
+        p.pdfc.getContext('2d').drawImage(tmp, 0, 0);
+        var x0 = rx / p.cw, y0 = ry / p.chh, x1 = (rx + rw) / p.cw, y1 = (ry + rh) / p.chh;
+        if(full){ x0 = 0; y0 = 0; x1 = 1; y1 = 1; }
+        placeCv(p.pdfc, x0, y0, x1, y1);
+        p.hlc.width = p.penc.width = tmp.width; p.hlc.height = p.penc.height = tmp.height;
+        placeCv(p.hlc, x0, y0, x1, y1); placeCv(p.penc, x0, y0, x1, y1);
+        p.aw = full ? tmp.width : p.cw * f; p.ah = full ? tmp.height : p.chh * f;
+        p.ax = full ? 0 : rx * f; p.ay = full ? 0 : ry * f;
+        p.mode = full ? 'full' : 'region'; p.reg = { x0: x0, y0: y0, x1: x1, y1: y1 }; p.regZ = zoom;
+        p.hasCanvas = true;
+        redrawAnn(p);
+        scheduleText(p, rv);
+      }).catch(function(){}).then(function(){ if(p.task === task) p.task = null; done(); });
+    }
+    if(full){ clearBase(p); go(); }
+    else if(p.baseOK){ go(); }
+    else makeBase(p, rv, go);
   }).catch(function(){ done(); });
 }
 
 function releasePage(p){
-  p.rv++; p.rendered = false; p.hasCanvas = false;
+  p.rv++; p.rendered = false; p.hasCanvas = false; p.baseOK = false; p.mode = null; p.reg = null; p.textW = 0;
   if(p.task){ try { p.task.cancel(); } catch(e){} p.task = null; }
-  p.pdfc.width = p.pdfc.height = 0; p.hlc.width = p.hlc.height = 0; p.penc.width = p.penc.height = 0;
+  p.pdfc.width = p.pdfc.height = 0; p.pdfb.width = p.pdfb.height = 0;
+  p.hlc.width = p.hlc.height = 0; p.penc.width = p.penc.height = 0;
   p.tl.textContent = ''; p.hll.textContent = ''; p.geo = null;
+}
+
+/* text layer scroll ruk jaane ke baad banta hai (scroll ke beech bhaari kaam nahi) */
+var lastScroll = 0, textQ = [], textT = 0;
+function scheduleText(p, rv){ textQ.push([p, rv]); if(!textT) textT = setTimeout(pumpText, 60); }
+function pumpText(){
+  textT = 0;
+  if(Date.now() - lastScroll < 180){ textT = setTimeout(pumpText, 120); return; }
+  var it = textQ.shift(); if(it) buildText(it[0], it[1]);
+  if(textQ.length) textT = setTimeout(pumpText, 25);
 }
 
 function staleAll(){ pages.forEach(function(p){ p.rendered = false; if(p.task){ try { p.task.cancel(); } catch(e){} p.task = null; } p.rv++; }); }
@@ -491,6 +562,8 @@ function ensureText(p){
 function buildText(p, rv){
   ensureText(p).then(function(items){
     if(rv !== p.rv || !p.rendered) return;
+    if(p.textW === p.cw && p.tl.firstChild) return;
+    p.textW = p.cw;
     var scale = p.cw / p.pw, vp = p.page.getViewport({ scale: scale });
     var frag = document.createDocumentFragment(); p.geo = [];
     items.forEach(function(it, idx){
@@ -514,7 +587,10 @@ function buildText(p, rv){
 
 /* ---------------- scroll / indicator / position ---------------- */
 var raf = 0;
+var idleT = 0;
 scroller.addEventListener('scroll', function(){
+  lastScroll = Date.now();
+  clearTimeout(idleT); idleT = setTimeout(function(){ renderVisible(); }, 140);
   if(raf) return;
   raf = requestAnimationFrame(function(){ raf = 0; renderVisible(); updateIndicator(); savePosSoon(); });
 }, { passive: true });
@@ -626,9 +702,11 @@ function drawStroke(ctx, W, H, s){
 }
 function redrawAnn(p){
   if(!p.hasCanvas) return;
-  var W = p.hlc.width, H = p.hlc.height;
+  var W = p.aw || p.hlc.width, H = p.ah || p.hlc.height;
   var hc = p.hlc.getContext('2d'), pc = p.penc.getContext('2d');
-  hc.clearRect(0, 0, W, H); pc.clearRect(0, 0, W, H);
+  hc.setTransform(1, 0, 0, 1, 0, 0); pc.setTransform(1, 0, 0, 1, 0, 0);
+  hc.clearRect(0, 0, p.hlc.width, p.hlc.height); pc.clearRect(0, 0, p.penc.width, p.penc.height);
+  hc.setTransform(1, 0, 0, 1, -(p.ax || 0), -(p.ay || 0)); pc.setTransform(1, 0, 0, 1, -(p.ax || 0), -(p.ay || 0));
   (ann[p.n] || []).forEach(function(s){ drawStroke(s.k === 'h' ? hc : pc, W, H, s); });
 }
 
@@ -672,7 +750,8 @@ function addPoint(e){
   s.p.push(x, y);
   var cv = s.k === 'h' ? cur.p.hlc : cur.p.penc;
   if(!cv.width) return;
-  var ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
+  var ctx = cv.getContext('2d'), W = cur.p.aw || cv.width, H = cur.p.ah || cv.height;
+  ctx.setTransform(1, 0, 0, 1, -(cur.p.ax || 0), -(cur.p.ay || 0));
   ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = s.c; ctx.fillStyle = s.c; ctx.lineWidth = Math.max(1, s.w * W);
   if(s.p.length === 2){ ctx.beginPath(); ctx.arc(x * W, y * H, ctx.lineWidth / 2, 0, Math.PI * 2); ctx.fill(); }
   else { ctx.beginPath(); ctx.moveTo(s.p[s.p.length - 4] * W, s.p[s.p.length - 3] * H); ctx.lineTo(x * W, y * H); ctx.stroke(); }
