@@ -32,9 +32,17 @@ jobs:
       - name: Add Android project
         run: npx cap add android
 
+      - name: Prepare icon folder
+        run: |
+          mkdir -p assets
+          for f in icon-only.png icon-foreground.png; do
+            src=$(find . -path ./node_modules -prune -o -path ./android -prune -o -name "$f" -print | grep -v '^./assets/' | head -1)
+            if [ -n "$src" ]; then cp "$src" "assets/$f"; fi
+          done
+          ls -la assets
+
       - name: Check icon files
         run: |
-          ls -la assets
           test -f assets/icon-only.png
           test -f assets/icon-foreground.png
 
@@ -42,8 +50,14 @@ jobs:
         # Icon ka background colour yahan hai (dono jagah same rakho)
         run: npx capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#0B2521' --iconBackgroundColorDark '#0B2521'
 
-      - name: Check icons made
-        run: find android/app/src/main/res -name "ic_launcher*" | head -20
+      - name: Fix icon background
+        run: |
+          RES=android/app/src/main/res
+          mkdir -p $RES/values
+          printf '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#0B2521</color>\n</resources>\n' > $RES/values/ic_launcher_background.xml
+          sed -i 's#@mipmap/ic_launcher_background#@color/ic_launcher_background#g' $RES/mipmap-anydpi-v26/*.xml
+          cat $RES/mipmap-anydpi-v26/ic_launcher.xml
+          find $RES -name "ic_launcher*" | head -30
 
       - name: Shorten PDF names
         run: |
