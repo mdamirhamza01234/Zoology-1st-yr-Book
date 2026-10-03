@@ -351,7 +351,10 @@ function showUnit(n){
     '<div class="big">' + u.icon + '</div>' +
     '<div class="un">UNIT ' + ROMAN[u.n] + '</div>' +
     '<h2>' + esc(u.title) + '</h2>' +
-    '<p>' + u.ch.length + ' chapters &nbsp;|&nbsp; Pages ' + u.pages + '</p>';
+    '<p>' + u.ch.length + ' chapters &nbsp;|&nbsp; Pages ' + u.pages + '</p>' +
+    '<p style="margin-top:8px;font-weight:700;opacity:.95">&#128214; Unit intro PDF kholne ke liye dabaiye</p>';
+  ub.style.cursor = 'pointer';
+  ub.onclick = function(){ openPdf('unit-' + u.n + '.pdf', 'Unit ' + ROMAN[u.n] + '  ' + u.title); };
   var list = $('chList'); list.innerHTML = '';
   u.ch.forEach(function(c){ list.appendChild(chapterButton(u, c, false)); });
 }
