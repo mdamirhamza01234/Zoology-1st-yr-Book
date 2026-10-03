@@ -65,6 +65,10 @@ jobs:
           for f in [0-9]*_*.pdf; do
             mv "$f" "${f%%_*}.pdf"
           done
+          for f in Chapter_[0-9][0-9]_*.pdf; do
+            n=$((10#${f:8:2}))
+            mv "$f" "unit-$n.pdf"
+          done
           ls
 
       - name: Copy www into Android
