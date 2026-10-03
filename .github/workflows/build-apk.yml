@@ -1,0 +1,50 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code download
+        uses: actions/checkout@v4
+
+      - name: Node setup
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Java setup
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install packages
+        run: npm install
+
+      - name: Add Android project
+        run: npx cap add android
+
+      - name: Make app icons
+        # Icon ka background colour yahan hai (dono jagah same rakho)
+        run: npx capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#03201A' --iconBackgroundColorDark '#03201A'
+
+      - name: Copy www into Android
+        run: npx cap sync android
+
+      - name: Build APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: BSC-Zoology-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          
