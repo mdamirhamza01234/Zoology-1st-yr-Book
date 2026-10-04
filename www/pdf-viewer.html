@@ -153,6 +153,19 @@
     position:fixed; left:10px; bottom:calc(10px + env(safe-area-inset-bottom)); z-index:35; pointer-events:none;
     background:rgba(18,26,53,.72); border:1px solid rgba(255,255,255,.16); border-radius:999px; padding:6px 12px; font-size:12px; font-weight:700; color:#fff;
   }
+  .page::after{content:attr(data-n); position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:60px; font-weight:800; color:rgba(0,0,0,.07); pointer-events:none;}
+  .page.rdy::after{display:none;}
+  body.night .page::after{color:rgba(255,255,255,.08);}
+  #dim,#warm{position:fixed; inset:0; z-index:12; pointer-events:none;}
+  #warm{mix-blend-mode:multiply;}
+  .modal.comf{top:auto; bottom:calc(24px + env(safe-area-inset-bottom)); width:min(92vw,360px);}
+  .modal input[type=range]{padding:0; border:none; background:none; height:30px; accent-color:#9DB0FF; margin-top:4px;}
+  .modal .sl{display:block; margin-top:14px; font-size:13px; font-weight:700; color:var(--soft);}
+  .modal .sl span{float:right; color:var(--ink);}
+  .chips{display:flex; gap:8px;}
+  .chips button{flex:1; padding:11px 6px; border-radius:12px; border:1px solid var(--line); background:rgba(255,255,255,.06); font-weight:700; font-size:14px; cursor:pointer;}
+  .chips button.on{background:#33407A; border-color:transparent; color:#fff;}
+  .modal .of{margin:8px 2px 0; font-size:12.5px; color:var(--soft); font-weight:600;}
   .toast{position:fixed; left:50%; bottom:calc(96px + env(safe-area-inset-bottom)); transform:translateX(-50%) translateY(20px); opacity:0; z-index:40;
     background:#0F1530; border:1px solid rgba(255,255,255,.18); border-radius:999px; padding:10px 18px; font-size:13.5px; font-weight:600; pointer-events:none; transition:all .22s ease; white-space:nowrap;}
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
@@ -214,6 +227,7 @@
 
 <div class="menu" id="menu" hidden>
   <button id="mNight"><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Night mode<span class="tag" id="nightTag">Off</span></button>
+  <button id="mComfort"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Reading comfort<span class="tag" id="comfTag">Day</span></button>
   <button id="mFit"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Fit to width</button>
   <button id="mZin"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/></svg>Zoom in</button>
   <button id="mZout"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35M8 11h6"/></svg>Zoom out</button>
@@ -230,6 +244,8 @@
 <div class="modal" id="gotoModal" hidden>
   <h3>Go to page</h3>
   <input id="gotoInput" type="number" inputmode="numeric" min="1" placeholder="Page number">
+  <input type="range" id="gotoRange" min="1" max="1" step="1">
+  <div class="of" id="gotoOf"></div>
   <div class="row"><button id="gotoCancel">Cancel</button><button class="go" id="gotoGo">Go</button></div>
 </div>
 
@@ -257,6 +273,14 @@
 
 <button class="fullExit" id="fullExit" aria-label="Exit full view" hidden><svg viewBox="0 0 24 24"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
 <div class="fullPg" id="fullPg" hidden></div>
+<div id="dim"></div><div id="warm"></div>
+<div class="modal comf" id="comfModal" hidden>
+  <h3>Reading comfort</h3>
+  <div class="chips"><button data-th="day">Day</button><button data-th="night">Night</button><button data-th="sepia">Sepia</button></div>
+  <label class="sl">Brightness<span id="bVal">100%</span><input type="range" id="bRange" min="30" max="100" step="1"></label>
+  <label class="sl">Warm tint<span id="wVal">0%</span><input type="range" id="wRange" min="0" max="100" step="1"></label>
+  <div class="row"><button id="comfReset">Reset</button><button class="go" id="comfDone">Done</button></div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -422,11 +446,13 @@ function regionCovers(p){
 }
 function renderVisible(){
   if(!pages.length) return;
-  var vh = scroller.clientHeight, m = vh * 1.0, m2 = vh * 2.2, st = scroller.scrollTop;
+  var vh = scroller.clientHeight, m2 = vh * 2.6, st = scroller.scrollTop;
+  var ahead = vh * 1.7, behind = vh * 0.7, mUp = dirDown ? behind : ahead, mDown = dirDown ? ahead : behind;
   for(var i = 0; i < pages.length; i++){
     var p = pages[i], top = p.top - st, bot = top + p.chh;
-    var vis = bot > -m && top < vh + m;
+    var vis = bot > -mUp && top < vh + mDown;
     if(vis && !p.rendered) renderPage(p);
+    else if(vis && p.low && !fastScroll && p.hasCanvas && !p.busy && !p.queued) renderPage(p);
     else if(vis && p.mode === 'region' && p.hasCanvas && !p.busy && !p.queued && !regionCovers(p)) renderPage(p);
     else if(!vis && (p.rendered || p.hasCanvas) && !(bot > -m2 && top < vh + m2)) releasePage(p);
   }
@@ -434,6 +460,7 @@ function renderVisible(){
 
 /* ek saath 3 page render hote hain, jo screen ke sabse paas ho wo pehle */
 var rq = [], activeR = 0, MAXR = 3;
+var dirDown = true, fastScroll = false, lastY = 0, lastT = 0;
 var CAP = 7e6;   // ek canvas me max pixels (zyada zoom par sirf dikhne wala hissa crisp render hota hai)
 function renderPage(p){
   p.rendered = true;
@@ -473,7 +500,7 @@ function makeBase(p, rv, cb){
     if(rv === p.rv){
       p.pdfb.width = tmp.width; p.pdfb.height = tmp.height;
       p.pdfb.getContext('2d').drawImage(tmp, 0, 0);
-      placeCv(p.pdfb, 0, 0, 1, 1); p.baseOK = true;
+      placeCv(p.pdfb, 0, 0, 1, 1); p.baseOK = true; p.el.classList.add('rdy');
     }
   }).catch(function(){}).then(cb);
 }
@@ -491,6 +518,7 @@ function doRender(p){
       rx = v.x; ry = v.y; rw = v.w; rh = v.h;
       f = Math.min(dpr, Math.sqrt(CAP / (rw * rh)));
     }
+    if(full && fastScroll){ f = Math.min(f, 1); p.low = true; } else p.low = false;
     f = Math.max(f, 0.5);
     function go(){
       if(rv !== p.rv || !p.rendered){ done(); return; }
@@ -514,7 +542,7 @@ function doRender(p){
         p.aw = full ? tmp.width : p.cw * f; p.ah = full ? tmp.height : p.chh * f;
         p.ax = full ? 0 : rx * f; p.ay = full ? 0 : ry * f;
         p.mode = full ? 'full' : 'region'; p.reg = { x0: x0, y0: y0, x1: x1, y1: y1 }; p.regZ = zoom;
-        p.hasCanvas = true;
+        p.hasCanvas = true; p.el.classList.add('rdy');
         redrawAnn(p);
         scheduleText(p, rv);
       }).catch(function(){}).then(function(){ if(p.task === task) p.task = null; done(); });
@@ -526,7 +554,7 @@ function doRender(p){
 }
 
 function releasePage(p){
-  p.rv++; p.rendered = false; p.hasCanvas = false; p.baseOK = false; p.mode = null; p.reg = null; p.textW = 0;
+  p.rv++; p.el.classList.remove('rdy'); p.rendered = false; p.hasCanvas = false; p.baseOK = false; p.mode = null; p.reg = null; p.textW = 0;
   if(p.task){ try { p.task.cancel(); } catch(e){} p.task = null; }
   p.pdfc.width = p.pdfc.height = 0; p.pdfb.width = p.pdfb.height = 0;
   p.hlc.width = p.hlc.height = 0; p.penc.width = p.penc.height = 0;
@@ -590,7 +618,10 @@ var raf = 0;
 var idleT = 0;
 scroller.addEventListener('scroll', function(){
   lastScroll = Date.now();
-  clearTimeout(idleT); idleT = setTimeout(function(){ renderVisible(); }, 140);
+  var nowT = performance.now(), y = scroller.scrollTop, dt = Math.max(1, nowT - lastT);
+  if(y !== lastY){ dirDown = y > lastY; if(dt < 120 && Math.abs(y - lastY) / dt > 1.6) fastScroll = true; }
+  lastY = y; lastT = nowT;
+  clearTimeout(idleT); idleT = setTimeout(function(){ fastScroll = false; renderVisible(); }, 150);
   if(raf) return;
   raf = requestAnimationFrame(function(){ raf = 0; renderVisible(); updateIndicator(); savePosSoon(); });
 }, { passive: true });
@@ -609,6 +640,21 @@ function scrollToPage(n, frac, instant){
   var p = pages[n - 1]; if(!p) return;
   scroller.scrollTop = p.el.offsetTop - 6 + (frac || 0) * p.chh;
 }
+var anim = 0;
+function smoothTo(y){
+  cancelAnimationFrame(anim);
+  var vh = scroller.clientHeight, y0 = scroller.scrollTop, d = y - y0;
+  if(Math.abs(d) > vh * 6){ y0 = y - (d > 0 ? 1 : -1) * vh * 2; scroller.scrollTop = y0; d = y - y0; }
+  var t0 = performance.now(), dur = Math.min(450, 190 + Math.abs(d) / 6);
+  function step(t){
+    var k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    scroller.scrollTop = y0 + d * e;
+    if(k < 1) anim = requestAnimationFrame(step); else renderVisible();
+  }
+  anim = requestAnimationFrame(step);
+}
+function goPage(n){ var p = pages[n - 1]; if(p) smoothTo(p.el.offsetTop - 6); }
+scroller.addEventListener('touchstart', function(){ cancelAnimationFrame(anim); }, { passive: true });
 var posT = 0;
 function savePosSoon(){ clearTimeout(posT); posT = setTimeout(savePos, 700); }
 function savePos(){
@@ -696,8 +742,14 @@ function drawStroke(ctx, W, H, s){
   ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = s.c; ctx.fillStyle = s.c;
   ctx.lineWidth = Math.max(1, s.w * W);
   if(pts.length < 4){ ctx.beginPath(); ctx.arc(pts[0] * W, pts[1] * H, ctx.lineWidth / 2, 0, Math.PI * 2); ctx.fill(); return; }
+  var k = pts.length / 2;
   ctx.beginPath(); ctx.moveTo(pts[0] * W, pts[1] * H);
-  for(var i = 2; i < pts.length; i += 2) ctx.lineTo(pts[i] * W, pts[i + 1] * H);
+  if(k === 2){ ctx.lineTo(pts[2] * W, pts[3] * H); ctx.stroke(); return; }
+  ctx.lineTo((pts[0] + pts[2]) / 2 * W, (pts[1] + pts[3]) / 2 * H);
+  for(var i = 1; i < k - 1; i++){
+    ctx.quadraticCurveTo(pts[2 * i] * W, pts[2 * i + 1] * H, (pts[2 * i] + pts[2 * i + 2]) / 2 * W, (pts[2 * i + 1] + pts[2 * i + 3]) / 2 * H);
+  }
+  ctx.lineTo(pts[2 * k - 2] * W, pts[2 * k - 1] * H);
   ctx.stroke();
 }
 function redrawAnn(p){
@@ -746,7 +798,8 @@ function step(e){ if(tool === 'er') eraseAt(e); else addPoint(e); }
 function addPoint(e){
   var r = cur.rect, x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
   var s = cur.stroke, n = s.p.length;
-  if(n >= 2 && Math.abs(s.p[n - 2] - x) < 0.0012 && Math.abs(s.p[n - 1] - y) < 0.0012) return;
+  var minD = 0.7 / r.width;
+  if(n >= 2 && Math.abs(s.p[n - 2] - x) < minD && Math.abs((s.p[n - 1] - y) * r.height / r.width) < minD) return;
   s.p.push(x, y);
   var cv = s.k === 'h' ? cur.p.hlc : cur.p.penc;
   if(!cv.width) return;
@@ -754,7 +807,26 @@ function addPoint(e){
   ctx.setTransform(1, 0, 0, 1, -(cur.p.ax || 0), -(cur.p.ay || 0));
   ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = s.c; ctx.fillStyle = s.c; ctx.lineWidth = Math.max(1, s.w * W);
   if(s.p.length === 2){ ctx.beginPath(); ctx.arc(x * W, y * H, ctx.lineWidth / 2, 0, Math.PI * 2); ctx.fill(); }
-  else { ctx.beginPath(); ctx.moveTo(s.p[s.p.length - 4] * W, s.p[s.p.length - 3] * H); ctx.lineTo(x * W, y * H); ctx.stroke(); }
+  else {
+    var q = s.p, kk = q.length / 2;
+    ctx.beginPath();
+    if(kk === 2){ ctx.moveTo(q[0] * W, q[1] * H); ctx.lineTo((q[0] + q[2]) / 2 * W, (q[1] + q[3]) / 2 * H); }
+    else {
+      ctx.moveTo((q[2 * kk - 6] + q[2 * kk - 4]) / 2 * W, (q[2 * kk - 5] + q[2 * kk - 3]) / 2 * H);
+      ctx.quadraticCurveTo(q[2 * kk - 4] * W, q[2 * kk - 3] * H, (q[2 * kk - 4] + q[2 * kk - 2]) / 2 * W, (q[2 * kk - 3] + q[2 * kk - 1]) / 2 * H);
+    }
+    ctx.stroke();
+  }
+}
+/* stroke khatam hone par aakhri tukda poora karo, taaki live drawing aur redraw bilkul same dikhein */
+function tailSegment(c){
+  var s = c.stroke, q = s.p, kk = q.length / 2; if(kk < 2) return;
+  var cv = s.k === 'h' ? c.p.hlc : c.p.penc; if(!cv.width) return;
+  var ctx = cv.getContext('2d'), W = c.p.aw || cv.width, H = c.p.ah || cv.height;
+  ctx.setTransform(1, 0, 0, 1, -(c.p.ax || 0), -(c.p.ay || 0));
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = s.c; ctx.lineWidth = Math.max(1, s.w * W);
+  ctx.beginPath(); ctx.moveTo((q[2 * kk - 4] + q[2 * kk - 2]) / 2 * W, (q[2 * kk - 3] + q[2 * kk - 1]) / 2 * H);
+  ctx.lineTo(q[2 * kk - 2] * W, q[2 * kk - 1] * H); ctx.stroke();
 }
 
 function distSeg(px, py, ax, ay, bx, by){
@@ -784,6 +856,7 @@ function finishStroke(){
     return;
   }
   var s = c.stroke; if(!s || !s.p.length) return;
+  tailSegment(c);
   for(var i = 0; i < s.p.length; i++) s.p[i] = Math.round(s.p[i] * 10000) / 10000;
   s.w = Math.round(s.w * 100000) / 100000;
   listFor(c.p.n).push(s);
@@ -964,10 +1037,39 @@ $('menuBtn').onclick = openMenu;
 $('scrim').onclick = function(){ if(layers.length) history.back(); };
 function menuThen(fn){ return function(){ closeLayer('menu'); setTimeout(fn, 60); }; }
 
+var K_COMF = 'vpair_comfort', comf = lsGet(K_COMF, { b: 100, w: 0 });
+function applyComf(){
+  $('dim').style.background = 'rgba(0,0,0,' + ((100 - comf.b) / 100 * 0.7).toFixed(3) + ')';
+  $('warm').style.background = 'rgba(255,150,40,' + (comf.w / 100 * 0.55).toFixed(3) + ')';
+  $('bVal').textContent = comf.b + '%'; $('wVal').textContent = comf.w + '%';
+  $('bRange').value = comf.b; $('wRange').value = comf.w;
+  var night = document.body.classList.contains('night'), th = night ? 'night' : (comf.w >= 20 ? 'sepia' : 'day');
+  [].forEach.call(document.querySelectorAll('.chips button'), function(b){ b.classList.toggle('on', b.dataset.th === th); });
+  $('comfTag').textContent = th === 'night' ? 'Night' : th === 'sepia' ? 'Sepia' : 'Day';
+  lsSet(K_COMF, comf);
+}
 function setNight(v){
   document.body.classList.toggle('night', v); $('nightTag').textContent = v ? 'On' : 'Off'; lsSet(K_NIGHT, v);
+  if(window.__comfReady) applyComf();
 }
 setNight(!!lsGet(K_NIGHT, false));
+window.__comfReady = true; applyComf();
+function openComfort(){ $('scrim').hidden = false; $('scrim').style.background = 'transparent'; $('comfModal').hidden = false; pushLayer('comf', closeComfUI); }
+function closeComfUI(){ $('comfModal').hidden = true; $('scrim').hidden = true; $('scrim').style.background = ''; }
+$('mComfort').onclick = menuThen(openComfort);
+$('comfDone').onclick = function(){ closeLayer('comf'); };
+$('comfReset').onclick = function(){ comf = { b: 100, w: 0 }; setNight(false); applyComf(); };
+$('bRange').addEventListener('input', function(){ comf.b = +this.value; applyComf(); });
+$('wRange').addEventListener('input', function(){ comf.w = +this.value; applyComf(); });
+[].forEach.call(document.querySelectorAll('.chips button'), function(b){
+  b.onclick = function(){
+    var t = b.dataset.th;
+    if(t === 'day'){ comf = { b: 100, w: 0 }; setNight(false); }
+    else if(t === 'night'){ comf = { b: 90, w: 15 }; setNight(true); }
+    else { comf = { b: 92, w: 40 }; setNight(false); }
+    applyComf();
+  };
+});
 $('mNight').onclick = function(){ setNight(!document.body.classList.contains('night')); closeLayer('menu'); };
 $('mFit').onclick = menuThen(function(){ var n = curPage(); applyZoom(1); scrollToPage(n, 0); });
 $('mZin').onclick = function(){ applyZoom(zoom * 1.35); };
@@ -979,7 +1081,7 @@ $('mClear').onclick = menuThen(function(){
   }
 });
 
-function openGoto(){ $('scrim').hidden = false; $('gotoModal').hidden = false; $('gotoInput').value = ''; $('gotoInput').max = N; setTimeout(function(){ $('gotoInput').focus(); }, 50); pushLayer('goto', closeGotoUI); }
+function openGoto(){ $('scrim').hidden = false; $('gotoModal').hidden = false; $('gotoInput').value = ''; $('gotoInput').max = N; $('gotoInput').placeholder = 'Page number (1 - ' + N + ')'; $('gotoRange').max = N; $('gotoRange').value = curPage(); $('gotoOf').textContent = 'Slider se bhi chun sakte hain  |  Total ' + N + ' pages'; setTimeout(function(){ $('gotoInput').focus(); }, 50); pushLayer('goto', closeGotoUI); }
 function closeGotoUI(){ $('gotoModal').hidden = true; if($('menu').hidden && $('bmSheet').hidden) $('scrim').hidden = true; }
 $('mGoto').onclick = menuThen(openGoto);
 $('pgInd').onclick = openGoto;
@@ -987,13 +1089,15 @@ $('gotoCancel').onclick = function(){ closeLayer('goto'); };
 function doGoto(){
   var n = parseInt($('gotoInput').value, 10);
   if(!n || n < 1 || n > N){ toast('Enter a page from 1 to ' + N); return; }
-  closeLayer('goto'); setTimeout(function(){ scrollToPage(n, 0); renderVisible(); updateIndicator(); }, 80);
+  closeLayer('goto'); setTimeout(function(){ goPage(n); updateIndicator(); }, 80);
 }
 $('gotoGo').onclick = doGoto;
+$('gotoRange').addEventListener('input', function(){ $('gotoInput').value = this.value; });
+$('gotoInput').addEventListener('input', function(){ var v = parseInt(this.value, 10); if(v >= 1 && v <= N) $('gotoRange').value = v; });
 $('gotoInput').addEventListener('keydown', function(e){ if(e.key === 'Enter') doGoto(); });
 
-$('pgUp').onclick = function(){ var n = curPage(), p = pages[n - 1]; var atTop = scroller.scrollTop - p.el.offsetTop < 40; scrollToPage(atTop ? Math.max(1, n - 1) : n, 0); };
-$('pgDown').onclick = function(){ scrollToPage(Math.min(N, curPage() + 1), 0); };
+$('pgUp').onclick = function(){ var n = curPage(), p = pages[n - 1]; var atTop = scroller.scrollTop - p.el.offsetTop < 40; goPage(atTop ? Math.max(1, n - 1) : n); };
+$('pgDown').onclick = function(){ goPage(Math.min(N, curPage() + 1)); };
 
 /* bookmarks */
 function updateBookmarkUI(){
