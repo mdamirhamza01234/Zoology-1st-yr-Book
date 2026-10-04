@@ -691,7 +691,8 @@ scroller.addEventListener('touchstart', function(e){
     var a = e.touches[0], b = e.touches[1], r = scroller.getBoundingClientRect();
     g = { d0: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1, z0: zoom, r: 1,
           fx: (a.clientX + b.clientX) / 2 - r.left, fy: (a.clientY + b.clientY) / 2 - r.top,
-          sl: scroller.scrollLeft, st: scroller.scrollTop };
+          sl: scroller.scrollLeft, st: scroller.scrollTop,
+          W: pagesEl.offsetWidth, H: pagesEl.offsetHeight, vw: scroller.clientWidth, vh: scroller.clientHeight };
     g.cx = g.sl + g.fx; g.cy = g.st + g.fy;
     pagesEl.style.willChange = 'transform';
     cancelStroke();
@@ -704,6 +705,12 @@ scroller.addEventListener('touchmove', function(e){
   var d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
   var r = Math.max(MIN_Z / g.z0, Math.min(MAX_Z / g.z0, d / g.d0));
   var fcx = (a.clientX + b.clientX) / 2 - rect.left, fcy = (a.clientY + b.clientY) / 2 - rect.top;
+  /* do ungliyon se khiskane par page ke kinaare se bahar (kaala hissa) na dikhe, isliye position clamp karo */
+  function clampF(f, c, W, V){
+    var lo = V - (W - c) * r, hi = c * r;
+    return lo > hi ? (lo + hi) / 2 : Math.max(lo, Math.min(hi, f));
+  }
+  fcx = clampF(fcx, g.cx, g.W, g.vw); fcy = clampF(fcy, g.cy, g.H, g.vh);
   g.r = r; g.fcx = fcx; g.fcy = fcy;
   pagesEl.style.transform = 'translate(' + (fcx + g.sl - g.cx * r) + 'px,' + (fcy + g.st - g.cy * r) + 'px) scale(' + r + ')';
 }, { passive: false });
