@@ -46,8 +46,8 @@
 
   /* ---- scroller / pages ---- */
   #scroller{flex:1; position:relative; overflow:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:none; touch-action:pan-x pan-y; background:#080C18;}
-  #pages{width:max-content; min-width:100%; padding:10px 8px 150px; transform-origin:0 0;}
-  .page{position:relative; margin:0 auto 10px; background:#fff; box-shadow:0 2px 14px rgba(0,0,0,.45); overflow:hidden; contain:strict;}
+  #pages{width:max-content; min-width:100%; padding:0; transform-origin:0 0;}
+  .page{position:relative; margin:0 auto; background:#fff; box-shadow:none; overflow:hidden; contain:strict;}
   .page canvas{position:absolute; left:0; top:0; width:100%; height:100%; display:block;}
   .page .hlc{mix-blend-mode:multiply; pointer-events:none;}
   .page .penc{pointer-events:none;}
@@ -141,8 +141,8 @@
 
   /* ---- full view ---- */
   body.full .bar, body.full .searchbar, body.full .fab, body.full .pgnav{display:none !important;}
-  body.full #pages{padding:0 0 60px;}
-  body.full .page{margin:0 auto 3px; box-shadow:none;}
+  body.full #pages{padding:0;}
+  body.full .page{margin:0 auto; box-shadow:none;}
   .fullExit{
     position:fixed; right:10px; top:calc(10px + env(safe-area-inset-top)); width:44px; height:44px; border-radius:50%;
     border:1px solid rgba(255,255,255,.2); background:rgba(18,26,53,.72); color:#fff; display:flex; align-items:center; justify-content:center;
@@ -394,9 +394,9 @@ function mk(tag, cls){ var e = document.createElement(tag); e.className = cls; r
 
 function layoutPages(){
   var isFull = document.body.classList.contains('full');
-  baseW = Math.min(scroller.clientWidth - (isFull ? 0 : 16), isFull ? 1600 : 1100);
+  baseW = Math.min(scroller.clientWidth, isFull ? 1600 : 1100);
   pages.forEach(function(p){
-    var w = baseW * zoom, h = w * p.ph / p.pw;
+    var w = baseW * zoom, h = Math.round(w * p.ph / p.pw);
     p.cw = w; p.chh = h;
     p.el.style.width = w + 'px'; p.el.style.height = h + 'px';
   });
@@ -419,7 +419,7 @@ function loadSizesBatch(start){
       var p = pages[i - 1], vp = p.page.getViewport({ scale: 1 });
       if(Math.abs(vp.width - p.pw) > 0.5 || Math.abs(vp.height - p.ph) > 0.5){
         p.pw = vp.width; p.ph = vp.height;
-        var h = p.cw * p.ph / p.pw, d = h - p.chh;
+        var h = Math.round(p.cw * p.ph / p.pw), d = h - p.chh;
         if(p.top + p.chh <= st) adj += d;
         p.chh = h; p.el.style.height = h + 'px'; p.rendered = false; p.baseOK = false; changed = true;
       }
@@ -638,7 +638,7 @@ function updateIndicator(){
 }
 function scrollToPage(n, frac, instant){
   var p = pages[n - 1]; if(!p) return;
-  scroller.scrollTop = p.el.offsetTop - 6 + (frac || 0) * p.chh;
+  scroller.scrollTop = p.el.offsetTop + (frac || 0) * p.chh;
 }
 var anim = 0;
 function smoothTo(y){
@@ -653,7 +653,7 @@ function smoothTo(y){
   }
   anim = requestAnimationFrame(step);
 }
-function goPage(n){ var p = pages[n - 1]; if(p) smoothTo(p.el.offsetTop - 6); }
+function goPage(n){ var p = pages[n - 1]; if(p) smoothTo(p.el.offsetTop); }
 scroller.addEventListener('touchstart', function(){ cancelAnimationFrame(anim); }, { passive: true });
 var posT = 0;
 function savePosSoon(){ clearTimeout(posT); posT = setTimeout(savePos, 700); }
@@ -744,12 +744,26 @@ scroller.addEventListener('touchend', function(e){
 var cur = null, multi = 0;
 function listFor(n){ return ann[n] || (ann[n] = []); }
 
+/* pen ki motai: dheere likhne par moti, tez likhne par patli (v = har point ka multiplier) */
+function swd(s, i, W){ return Math.max(1, s.w * W * Math.max(1, (s.v && s.v[i]) || 1)); }
 function drawStroke(ctx, W, H, s){
   var pts = s.p; if(!pts.length) return;
   ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = s.c; ctx.fillStyle = s.c;
-  ctx.lineWidth = Math.max(1, s.w * W);
+  ctx.lineWidth = swd(s, 0, W);
   if(pts.length < 4){ ctx.beginPath(); ctx.arc(pts[0] * W, pts[1] * H, ctx.lineWidth / 2, 0, Math.PI * 2); ctx.fill(); return; }
   var k = pts.length / 2;
+  if(s.v && s.v.length === k){
+    ctx.beginPath(); ctx.moveTo(pts[0] * W, pts[1] * H); ctx.lineTo((pts[0] + pts[2]) / 2 * W, (pts[1] + pts[3]) / 2 * H); ctx.lineWidth = swd(s, 0, W); ctx.stroke();
+    for(var j = 1; j < k - 1; j++){
+      ctx.beginPath();
+      ctx.moveTo((pts[2 * j - 2] + pts[2 * j]) / 2 * W, (pts[2 * j - 1] + pts[2 * j + 1]) / 2 * H);
+      ctx.quadraticCurveTo(pts[2 * j] * W, pts[2 * j + 1] * H, (pts[2 * j] + pts[2 * j + 2]) / 2 * W, (pts[2 * j + 1] + pts[2 * j + 3]) / 2 * H);
+      ctx.lineWidth = swd(s, j, W); ctx.stroke();
+    }
+    ctx.beginPath(); ctx.moveTo((pts[2 * k - 4] + pts[2 * k - 2]) / 2 * W, (pts[2 * k - 3] + pts[2 * k - 1]) / 2 * H); ctx.lineTo(pts[2 * k - 2] * W, pts[2 * k - 1] * H);
+    ctx.lineWidth = swd(s, k - 1, W); ctx.stroke();
+    return;
+  }
   ctx.beginPath(); ctx.moveTo(pts[0] * W, pts[1] * H);
   if(k === 2){ ctx.lineTo(pts[2] * W, pts[3] * H); ctx.stroke(); return; }
   ctx.lineTo((pts[0] + pts[2]) / 2 * W, (pts[1] + pts[3]) / 2 * H);
@@ -783,6 +797,7 @@ function attachDraw(p){
     else {
       var s = cfg[tool];
       cur.stroke = { k: tool === 'hl' ? 'h' : 'p', c: s.c, w: tool === 'hl' ? s.s / rect.width : s.s / rect.width, p: [] };
+      if(tool !== 'hl') cur.stroke.v = [];
       addPoint(e);
     }
     e.preventDefault();
@@ -807,15 +822,27 @@ function addPoint(e){
   var s = cur.stroke, n = s.p.length;
   var minD = 0.7 / r.width;
   if(n >= 2 && Math.abs(s.p[n - 2] - x) < minD && Math.abs((s.p[n - 1] - y) * r.height / r.width) < minD) return;
+  if(s.v){
+    var tnow = e.timeStamp || performance.now(), tgt;
+    if(e.pointerType === 'pen' && e.pressure > 0) tgt = 1 + e.pressure * 0.9;
+    else if(cur.lt != null){
+      var sp = Math.hypot(e.clientX - cur.lx, e.clientY - cur.ly) / Math.max(1, tnow - cur.lt);   // px per ms
+      tgt = 1 + (1 - Math.min(1, sp / 2.2)) * 0.9;   // tez = chuni hui motai (minimum), dheere = 1.9x tak moti
+    } else tgt = 1.3;
+    cur.fv = cur.fv == null ? tgt : cur.fv * 0.65 + tgt * 0.35;
+    s.v.push(Math.round(cur.fv * 100) / 100);
+    cur.lt = tnow; cur.lx = e.clientX; cur.ly = e.clientY;
+  }
   s.p.push(x, y);
   var cv = s.k === 'h' ? cur.p.hlc : cur.p.penc;
   if(!cv.width) return;
   var ctx = cv.getContext('2d'), W = cur.p.aw || cv.width, H = cur.p.ah || cv.height;
   ctx.setTransform(1, 0, 0, 1, -(cur.p.ax || 0), -(cur.p.ay || 0));
-  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = s.c; ctx.fillStyle = s.c; ctx.lineWidth = Math.max(1, s.w * W);
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = s.c; ctx.fillStyle = s.c; ctx.lineWidth = swd(s, 0, W);
   if(s.p.length === 2){ ctx.beginPath(); ctx.arc(x * W, y * H, ctx.lineWidth / 2, 0, Math.PI * 2); ctx.fill(); }
   else {
     var q = s.p, kk = q.length / 2;
+    ctx.lineWidth = swd(s, Math.max(0, kk - 2), W);
     ctx.beginPath();
     if(kk === 2){ ctx.moveTo(q[0] * W, q[1] * H); ctx.lineTo((q[0] + q[2]) / 2 * W, (q[1] + q[3]) / 2 * H); }
     else {
@@ -831,7 +858,7 @@ function tailSegment(c){
   var cv = s.k === 'h' ? c.p.hlc : c.p.penc; if(!cv.width) return;
   var ctx = cv.getContext('2d'), W = c.p.aw || cv.width, H = c.p.ah || cv.height;
   ctx.setTransform(1, 0, 0, 1, -(c.p.ax || 0), -(c.p.ay || 0));
-  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = s.c; ctx.lineWidth = Math.max(1, s.w * W);
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = s.c; ctx.lineWidth = swd(s, kk - 1, W);
   ctx.beginPath(); ctx.moveTo((q[2 * kk - 4] + q[2 * kk - 2]) / 2 * W, (q[2 * kk - 3] + q[2 * kk - 1]) / 2 * H);
   ctx.lineTo(q[2 * kk - 2] * W, q[2 * kk - 1] * H); ctx.stroke();
 }
