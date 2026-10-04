@@ -130,6 +130,52 @@
   #splash.hide{opacity:0; pointer-events:none;}
   #splash img{width:min(68vw,340px); height:auto; animation:splashPop .8s ease both;}
   @keyframes splashPop{from{opacity:0; transform:scale(.85);} to{opacity:1; transform:scale(1);}}
+
+  /* ---------- naye features ---------- */
+  .card2{border:1px solid var(--line); background:var(--card); border-radius:20px; padding:14px 16px; margin:0 0 12px; width:100%; display:block;}
+  .card2 .k{font-size:12px; font-weight:800; color:var(--soft); letter-spacing:.3px;}
+  .card2 .v{font-size:16px; font-weight:700; line-height:1.3; margin-top:4px;}
+  .card2 .s{font-size:12.5px; color:var(--soft); margin-top:3px; font-weight:600;}
+  .contc{display:flex; align-items:center; gap:12px; background:linear-gradient(120deg,#33407A 0%,var(--card) 70%); border-color:rgba(157,176,255,.4);}
+  .contc .tx{flex:1; min-width:0;}
+  .contc .play{width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#7C5CFA,#5A3DE0); display:flex; align-items:center; justify-content:center; flex:none;}
+  .contc .play svg{fill:#fff; stroke:none; width:20px; height:20px;}
+  .bar2{height:8px; border-radius:99px; background:rgba(255,255,255,.1); overflow:hidden; margin-top:10px;}
+  .bar2 i{display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,#7C5CFA,#22C7D8);}
+  .studyc .top{display:flex; justify-content:space-between; align-items:flex-end; gap:10px;}
+  .studyc .big{font-size:26px; font-weight:800; line-height:1;}
+  .studyc .big small{font-size:13px; color:var(--soft); font-weight:700;}
+  .streak{font-size:13px; font-weight:800; color:#FFB74D; white-space:nowrap;}
+  .days{display:flex; gap:6px; align-items:flex-end; height:34px; margin-top:12px;}
+  .days div{flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:3px; font-size:10px; color:var(--faint); font-weight:700;}
+  .days b{display:block; width:100%; max-width:26px; border-radius:5px 5px 2px 2px; background:rgba(255,255,255,.14); min-height:3px;}
+  .days b.ok{background:linear-gradient(180deg,#22C7D8,#7C5CFA);}
+  .qgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:0 0 6px;}
+  .qt{display:flex; flex-direction:column; align-items:flex-start; gap:4px; padding:12px; border-radius:16px; background:var(--card); border:1px solid var(--line); font-size:13px; font-weight:700; line-height:1.2;}
+  .qt:active{background:#17214a;}
+  .qt .qi{font-size:22px;} .qt .qn{font-size:11.5px; color:var(--soft); font-weight:700;}
+  .ubar{height:5px; border-radius:99px; background:rgba(255,255,255,.12); overflow:hidden; margin-top:7px;}
+  .ubar i{display:block; height:100%; background:var(--c); filter:brightness(1.3);}
+  .ch .st{display:block; font-size:11.5px; font-weight:700; margin-top:3px; color:var(--soft);}
+  .ch .st.done{color:#4ADE80;}
+  .ch .fav{flex:none; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:21px; color:var(--faint); line-height:1;}
+  .ch .fav.on{color:#FFC107;}
+  .lp h3{margin:22px 4px 8px; font-size:14px; font-weight:800;}
+  .lp .tag2{display:inline-block; margin:4px 6px 0 0; padding:7px 12px; border-radius:999px; background:#33407A; font-size:13px; font-weight:800; cursor:pointer;}
+  .lp .nt2{margin-top:8px; padding:10px 12px; border-radius:12px; background:rgba(255,255,255,.05); border:1px solid var(--line); font-size:14px; line-height:1.45; white-space:pre-wrap; word-break:break-word; cursor:pointer;}
+  .lp .nt2 b{color:var(--soft); font-size:12px; margin-right:6px;}
+  .lp .row2{display:flex; gap:10px; margin-top:12px;}
+  .lp .row2 button{flex:1; padding:13px; border-radius:12px; border:1px solid var(--line); background:rgba(255,255,255,.06); font-weight:800; font-size:14px; text-align:center;}
+  .lp .row2 button.go{background:linear-gradient(135deg,#7C5CFA,#5A3DE0); border-color:transparent; color:#fff;}
+  .fcard{border:1px solid var(--line); background:rgba(255,255,255,.05); border-radius:18px; padding:18px; min-height:150px; font-size:17px; line-height:1.6;}
+  .fcard .bl{display:inline-block; min-width:70px; border-bottom:2px solid #8D7BFF; color:transparent; user-select:none;}
+  .fcard b{color:#FFD54F;}
+  .sheetbg{position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.55); display:flex; align-items:flex-end;}
+  .sheetbox{width:100%; max-width:640px; margin:0 auto; background:#1A2244; border-radius:22px 22px 0 0; padding:18px 16px calc(22px + env(safe-area-inset-bottom));}
+  .sheetbox h3{margin:0 0 12px; font-size:16px;}
+  .goals{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+  .goals button{padding:14px 6px; border-radius:12px; border:1px solid var(--line); background:rgba(255,255,255,.06); font-weight:800; font-size:14px; text-align:center;}
+  .goals button.on{background:#33407A; border-color:transparent;}
 </style>
 </head>
 <body>
@@ -147,6 +193,8 @@
       <div class="stat">Offline</div>
     </div>
   </section>
+
+  <div id="dash"></div>
 
   <div class="search">
     <label class="sbox">
@@ -173,6 +221,22 @@
   <div class="wrap">
     <div class="ubanner" id="ubanner"></div>
     <div id="chList"></div>
+  </div>
+</div>
+
+<!-- ============ LIST PAGE (favourites / notes / flashcards) ============ -->
+<div id="listPage" class="lp" hidden>
+  <header class="uhead">
+    <button class="back" id="lpBack" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+    <div class="ht" id="lpTitle"></div>
+  </header>
+  <div class="wrap" id="lpBody"></div>
+</div>
+
+<div class="sheetbg" id="goalSheet" hidden>
+  <div class="sheetbox">
+    <h3>Roz ka padhai goal (minute)</h3>
+    <div class="goals" id="goalBtns"></div>
   </div>
 </div>
 
@@ -292,8 +356,9 @@ $('statUnits').textContent = UNITS.length + ' Units';
 $('statCh').textContent = totalCh + ' Chapters';
 
 /* ----- home: unit buttons ----- */
+var animOnce = true;
 function renderUnits(){
-  var box = $('homeList'); box.className = 'stagger'; box.innerHTML = '';
+  var box = $('homeList'); box.className = animOnce ? 'stagger' : ''; animOnce = false; box.innerHTML = '';
   UNITS.forEach(function(u, i){
     var b = document.createElement('button');
     b.className = 'unit'; b.style.setProperty('--c', u.color); b.style.animationDelay = (i * 45) + 'ms';
@@ -301,7 +366,7 @@ function renderUnits(){
       '<div class="tile">' + u.icon + '</div>' +
       '<div class="tx"><div class="un">UNIT ' + ROMAN[u.n] + '</div>' +
       '<div class="ut">' + esc(u.title) + '</div>' +
-      '<div class="um">' + u.ch.length + ' chapters &nbsp;|&nbsp; Pages ' + u.pages + '</div></div>' + CHEV;
+      '<div class="um">' + u.ch.length + ' chapters &nbsp;|&nbsp; Pages ' + u.pages + unitDone(u).txt + '</div>' + unitDone(u).bar + '</div>' + CHEV;
     b.onclick = function(){ location.hash = 'unit-' + u.n; };
     box.appendChild(b);
   });
@@ -341,9 +406,16 @@ function chapterButton(u, c, withUnit){
     '<div class="no">' + c[0] + '</div>' +
     '<div class="ct">' + esc(c[1]) +
       (withUnit ? '<span class="src">Unit ' + ROMAN[u.n] + ' &middot; ' + esc(u.title) + '</span>' : '') +
+      statusHtml(c) +
     '</div>' +
-    '<div class="pgn">p. ' + c[2] + '</div>' + OPEN;
+    '<div class="pgn">p. ' + c[2] + '</div>' +
+    '<span class="fav' + (isFav(c[0]) ? ' on' : '') + '" role="button" aria-label="Favourite">' + (isFav(c[0]) ? '&#9733;' : '&#9734;') + '</span>' + OPEN;
   b.onclick = function(){ openPdf(c[0] + '.pdf', c[0] + '  ' + c[1]); };
+  b.querySelector('.fav').onclick = function(e){
+    e.stopPropagation(); e.preventDefault();
+    var on = toggleFav(c[0]); this.classList.toggle('on', on); this.innerHTML = on ? '&#9733;' : '&#9734;';
+    if(!$('listPage').hidden && location.hash === '#favs') showList('#favs'); else renderDash();
+  };
   return b;
 }
 
@@ -358,32 +430,219 @@ function showUnit(n){
     '<div class="un">UNIT ' + ROMAN[u.n] + '</div>' +
     '<h2>' + esc(u.title) + '</h2>' +
     '<p>' + u.ch.length + ' chapters &nbsp;|&nbsp; Pages ' + u.pages + '</p>' +
-    '<p style="margin-top:8px;font-weight:700;opacity:.95">&#128214; Unit intro PDF kholne ke liye dabaiye</p>';
+    '<p style="margin-top:8px;font-weight:700;opacity:.95">&#128214; Unit intro PDF kholne ke liye dabaiye</p>' + unitDone(u).bar;
   ub.style.cursor = 'pointer';
   ub.onclick = function(){ openPdf('unit-' + u.n + '.pdf', 'Unit ' + ROMAN[u.n] + '  ' + u.title); };
   var list = $('chList'); list.innerHTML = '';
   u.ch.forEach(function(c){ list.appendChild(chapterButton(u, c, false)); });
 }
 
+/* =====================================================================
+   NAYE FEATURES: continue reading, progress, favourites, notes/bookmarks,
+   flashcards, padhai timer
+   ===================================================================== */
+function lsGet(k, d){ try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } }
+function lsSet(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+function scanKeys(prefix){ var out = []; for(var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); if(k && k.indexOf(prefix) === 0) out.push(k); } return out; }
+function fileOfKey(k, prefix){ var r = k.slice(prefix.length); try { return decodeURIComponent(r); } catch(e){ return r; } }
+function viewerLink(fullFile, title, page){
+  return PDF_VIEWER + '?f=' + encodeURIComponent(fullFile) + '&t=' + encodeURIComponent(title) + (page ? '&p=' + page : '');
+}
+function labelOf(fullFile){
+  var base = fullFile.replace(/^.*\//, '').replace(/\.pdf$/i, ''), m = /^unit-(\d+)$/.exec(base), r = null;
+  if(m){ UNITS.forEach(function(u){ if(u.n === +m[1]) r = { title: 'Unit ' + ROMAN[u.n] + ' : ' + u.title, color: u.color }; }); }
+  if(!r) UNITS.forEach(function(u){ u.ch.forEach(function(c){ if(c[0] === base) r = { title: c[0] + '  ' + c[1], color: u.color }; }); });
+  if(!r) EXTRAS.forEach(function(e){ if(e[2].replace(/\.pdf$/i, '') === base) r = { title: e[1], color: '#7C5CFA' }; });
+  return r || { title: base, color: '#7C5CFA' };
+}
+
+/* ---- progress ---- */
+function chKey(c){ return PDF_DIR + c[0] + '.pdf'; }
+function chProg(c){
+  var e = (lsGet('zl_prog', {}))[chKey(c)]; if(!e || !e.N) return null;
+  var pct = Math.min(1, (e.mx || 0) / e.N);
+  return { pct: pct, done: pct >= 0.9 || (e.mx || 0) >= e.N };
+}
+function statusHtml(c){
+  var pr = chProg(c); if(!pr) return '';
+  return pr.done ? '<span class="st done">&#10003; Padh liya</span>' : '<span class="st">' + Math.max(1, Math.round(pr.pct * 100)) + '% padha</span>';
+}
+function unitDone(u){
+  var d = 0; u.ch.forEach(function(c){ var p = chProg(c); if(p && p.done) d++; });
+  var pct = Math.round(d / u.ch.length * 100);
+  return { d: d, txt: d ? ' &nbsp;|&nbsp; <span style="color:#4ADE80;font-weight:700">' + d + '/' + u.ch.length + ' padhe</span>' : '',
+           bar: '<div class="ubar"><i style="width:' + pct + '%"></i></div>' };
+}
+
+/* ---- favourites ---- */
+function favs(){ return lsGet('zl_fav', []); }
+function isFav(id){ return favs().indexOf(id) >= 0; }
+function toggleFav(id){ var f = favs(), i = f.indexOf(id); if(i >= 0) f.splice(i, 1); else f.push(id); lsSet('zl_fav', f); return i < 0; }
+
+/* ---- padhai timer ---- */
+function dayKey(d){ return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+function studyInfo(){
+  var st = lsGet('zl_study', { days: {}, goal: 60 }), days = st.days || {}, goal = st.goal || 60;
+  var today = days[dayKey(new Date())] || 0, streak = 0, d = new Date();
+  if((days[dayKey(d)] || 0) < 60) d.setDate(d.getDate() - 1);
+  while((days[dayKey(d)] || 0) >= 60){ streak++; d.setDate(d.getDate() - 1); }
+  var week = [], n = new Date(), names = ['Ra', 'So', 'Ma', 'Bu', 'Gu', 'Sh', 'Sha'];
+  for(var i = 6; i >= 0; i--){ var x = new Date(); x.setDate(n.getDate() - i); week.push({ s: days[dayKey(x)] || 0, l: ['Ra', 'So', 'Ma', 'Bu', 'Gu', 'Shu', 'Sha'][x.getDay()] }); }
+  return { today: today, goal: goal, streak: streak, week: week };
+}
+function mins(sec){ return Math.floor(sec / 60); }
+function openGoal(){
+  var st = lsGet('zl_study', { days: {}, goal: 60 }), box = $('goalBtns'); box.innerHTML = '';
+  [15, 30, 45, 60, 90, 120].forEach(function(m){
+    var b = document.createElement('button'); b.textContent = m + ' min'; if((st.goal || 60) === m) b.className = 'on';
+    b.onclick = function(){ st.goal = m; st.days = st.days || {}; lsSet('zl_study', st); $('goalSheet').hidden = true; renderDash(); };
+    box.appendChild(b);
+  });
+  $('goalSheet').hidden = false;
+}
+$('goalSheet').onclick = function(e){ if(e.target === this) this.hidden = true; };
+
+/* ---- counts ---- */
+function bmNoteData(){
+  var out = {};
+  scanKeys('vpair_bm_').forEach(function(k){ var f = fileOfKey(k, 'vpair_bm_'), a = lsGet(k, []); if(a.length){ (out[f] = out[f] || { bm: [], nt: [] }).bm = a; } });
+  scanKeys('vpair_note_').forEach(function(k){ var f = fileOfKey(k, 'vpair_note_'), a = lsGet(k, []); if(a.length){ (out[f] = out[f] || { bm: [], nt: [] }).nt = a; } });
+  return out;
+}
+function cardData(){
+  var out = {};
+  scanKeys('vpair_ann_').forEach(function(k){
+    var f = fileOfKey(k, 'vpair_ann_'), pg = (lsGet(k, { pages: {} }).pages) || {}, seen = {};
+    Object.keys(pg).forEach(function(n){ (pg[n] || []).forEach(function(s){ if(s.k === 'h' && s.t && s.t.length >= 12 && !seen[s.t]){ seen[s.t] = 1; (out[f] = out[f] || []).push({ f: f, n: +n, t: s.t }); } }); });
+  });
+  return out;
+}
+
+/* ---- home dashboard ---- */
+function renderDash(){
+  var box = $('dash'); if(!box) return; box.innerHTML = '';
+  var last = lsGet('zl_last', null);
+  if(last && last.f){
+    var a = document.createElement('button'); a.className = 'card2 contc';
+    var pct = last.N ? Math.round(Math.min(1, last.n / last.N) * 100) : 0;
+    a.innerHTML = '<div class="tx"><div class="k">PADHNA JAARI RAKHO</div><div class="v">' + esc(last.t || labelOf(last.f).title) + '</div><div class="s">Page ' + last.n + ' / ' + last.N + '</div><div class="bar2"><i style="width:' + pct + '%"></i></div></div><div class="play"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg></div>';
+    a.onclick = function(){ location.href = viewerLink(last.f, last.t || labelOf(last.f).title); };
+    box.appendChild(a);
+  }
+  var si = studyInfo(), sc = document.createElement('button'); sc.className = 'card2 studyc';
+  var gp = Math.min(100, Math.round(si.today / (si.goal * 60) * 100)), mx = Math.max.apply(null, si.week.map(function(w){ return w.s; }).concat([si.goal * 60]));
+  sc.innerHTML = '<div class="top"><div><div class="k">AAJ KI PADHAI</div><div class="big">' + mins(si.today) + ' <small>/ ' + si.goal + ' min</small></div></div><div class="streak">' + (si.streak ? '&#128293; ' + si.streak + ' din' : 'Aaj shuru karo') + '</div></div>' +
+    '<div class="bar2"><i style="width:' + gp + '%"></i></div><div class="days">' + si.week.map(function(w){ return '<div><b class="' + (w.s >= si.goal * 60 ? 'ok' : '') + '" style="height:' + Math.max(3, Math.round(w.s / mx * 24)) + 'px"></b>' + w.l + '</div>'; }).join('') + '</div>';
+  sc.onclick = openGoal; box.appendChild(sc);
+  var bn = bmNoteData(), cd = cardData(), nb = 0, nc = 0;
+  Object.keys(bn).forEach(function(f){ nb += bn[f].bm.length + bn[f].nt.length; });
+  Object.keys(cd).forEach(function(f){ nc += cd[f].length; });
+  var g = document.createElement('div'); g.className = 'qgrid';
+  [['&#11088;', 'Favourites', favs().length, '#favs'], ['&#128278;', 'Bookmarks & Notes', nb, '#notes'], ['&#127183;', 'Flashcards', nc, '#cards']].forEach(function(t){
+    var b = document.createElement('button'); b.className = 'qt';
+    b.innerHTML = '<span class="qi">' + t[0] + '</span><span>' + t[1] + '</span><span class="qn">' + t[2] + '</span>';
+    b.onclick = function(){ location.hash = t[3]; }; g.appendChild(b);
+  });
+  box.appendChild(g);
+}
+
+/* ---- list pages ---- */
+var deckP = [], deckPTotal = 0, shownP = false, practiceOn = false;
+function showList(h){
+  var body = $('lpBody'); body.innerHTML = '';
+  if(h === '#favs'){
+    $('lpTitle').textContent = 'Favourite chapters';
+    var f = favs(), found = 0;
+    UNITS.forEach(function(u){ u.ch.forEach(function(c){ if(f.indexOf(c[0]) >= 0){ found++; body.appendChild(chapterButton(u, c, true)); } }); });
+    if(!found) body.innerHTML = '<div class="empty">Abhi koi favourite nahi.<br>Kisi chapter ke saamne wale &#9734; ko dabaiye.</div>';
+  } else if(h === '#notes'){
+    $('lpTitle').textContent = 'Bookmarks & Notes';
+    var bn = bmNoteData(), files = Object.keys(bn);
+    if(!files.length){ body.innerHTML = '<div class="empty">Abhi koi bookmark ya note nahi.<br>PDF kholkar menu se bookmark ya note jodiye.</div>'; return; }
+    files.sort().forEach(function(file){
+      var lb = labelOf(file), d = bn[file], h3 = document.createElement('h3'); h3.textContent = lb.title; h3.style.color = lb.color; h3.style.filter = 'brightness(1.3)'; body.appendChild(h3);
+      d.bm.forEach(function(n){ var t = document.createElement('span'); t.className = 'tag2'; t.innerHTML = '&#128278; Page ' + n; t.onclick = function(){ location.href = viewerLink(file, lb.title, n); }; body.appendChild(t); });
+      d.nt.slice().sort(function(a, b){ return a.n - b.n; }).forEach(function(nt){
+        var x = document.createElement('div'); x.className = 'nt2'; x.innerHTML = '<b>p. ' + nt.n + '</b>' + esc(nt.text);
+        x.onclick = function(){ location.href = viewerLink(file, lb.title, nt.n); }; body.appendChild(x);
+      });
+    });
+  } else if(h === '#cards'){
+    $('lpTitle').textContent = 'Flashcards';
+    practiceOn = false; var cd = cardData(), fl = Object.keys(cd), total = 0;
+    fl.forEach(function(f){ total += cd[f].length; });
+    if(!total){ body.innerHTML = '<div class="empty">Abhi koi highlight nahi mila.<br>PDF mein pencil &rarr; highlighter se text par line khichiye, phir yahan card ban jayega.</div>'; return; }
+    var all = document.createElement('div'); all.className = 'row2';
+    all.innerHTML = '<button class="go">Sab ' + total + ' cards practice karo</button>';
+    all.firstChild.onclick = function(){ var d = []; fl.forEach(function(f){ d = d.concat(cd[f]); }); startPractice(d); };
+    body.appendChild(all);
+    fl.sort().forEach(function(f){
+      var lb = labelOf(f), b = document.createElement('button'); b.className = 'ch'; b.style.setProperty('--c', lb.color); b.style.marginTop = '10px';
+      b.innerHTML = '<div class="no">' + cd[f].length + '</div><div class="ct">' + esc(lb.title) + '<span class="st">Cards practice karo</span></div>' + OPEN;
+      b.onclick = function(){ startPractice(cd[f]); }; body.appendChild(b);
+    });
+  } else if(h === '#practice'){
+    $('lpTitle').textContent = 'Flashcards practice'; renderPractice();
+  }
+}
+function startPractice(d){
+  deckP = d.slice(); for(var i = deckP.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)), t = deckP[i]; deckP[i] = deckP[j]; deckP[j] = t; }
+  deckPTotal = deckP.length; shownP = false; practiceOn = true; location.hash = '#practice';
+}
+function cloze(text){
+  var words = text.split(/\s+/), cand = [];
+  words.forEach(function(w, i){ var c = w.replace(/[^A-Za-z]/g, ''); if(c.length >= 6) cand.push([i, c.length]); });
+  cand.sort(function(a, b){ return b[1] - a[1]; });
+  var pick = cand.slice(0, 2).map(function(x){ return x[0]; });
+  if(!pick.length) return null;
+  return { front: words.map(function(w, i){ return pick.indexOf(i) >= 0 ? '<span class="bl">' + esc(w) + '</span>' : esc(w); }).join(' '),
+           back: words.map(function(w, i){ return pick.indexOf(i) >= 0 ? '<b>' + esc(w) + '</b>' : esc(w); }).join(' ') };
+}
+function renderPractice(){
+  var body = $('lpBody'); body.innerHTML = '';
+  if(!deckP.length){
+    body.innerHTML = '<div class="empty">Sab cards ho gaye! &#127881;</div><div class="row2"><button class="go" id="pBack">Wapas jao</button></div>';
+    practiceOn = false; $('pBack').onclick = function(){ history.back(); }; return;
+  }
+  var c = deckP[0], cl = cloze(c.t), lb = labelOf(c.f), idx = deckPTotal - deckP.length + 1;
+  var face = shownP ? (cl ? cl.back : esc(c.t)) : (cl ? cl.front : '<span style="color:var(--soft)">Is highlight ko yaad karne ki koshish kijiye, phir jawab dekhiye.</span>');
+  body.innerHTML = '<div class="sec" style="display:flex;justify-content:space-between"><span>Card ' + idx + ' / ' + deckPTotal + '</span><span id="pPg" style="text-decoration:underline">' + esc(lb.title) + ' &middot; p. ' + c.n + '</span></div>' +
+    '<div class="fcard">' + face + '</div>' +
+    (shownP ? '<div class="row2"><button id="pAgain">Phir se</button><button class="go" id="pKnow">Yaad hai</button></div>' : '<div class="row2"><button class="go" id="pShow">Jawab dikhao</button></div>');
+  $('pPg').onclick = function(){ location.href = viewerLink(c.f, lb.title, c.n); };
+  if(shownP){
+    $('pKnow').onclick = function(){ deckP.shift(); shownP = false; renderPractice(); };
+    $('pAgain').onclick = function(){ deckP.push(deckP.shift()); shownP = false; renderPractice(); };
+  } else $('pShow').onclick = function(){ shownP = true; renderPractice(); };
+}
+
 /* ----- routing (Android back button bhi chalega) ----- */
 var homeScroll = 0;
 function route(){
-  var m = /^#unit-(\d+)$/.exec(location.hash);
+  var h = location.hash, m = /^#unit-(\d+)$/.exec(h);
   if(m){
-    if($('unitPage').hidden) homeScroll = window.scrollY;
+    if(!$('home').hidden) homeScroll = window.scrollY;
     showUnit(parseInt(m[1], 10));
-    $('home').hidden = true; $('unitPage').hidden = false;
+    $('home').hidden = true; $('listPage').hidden = true; $('unitPage').hidden = false;
+    window.scrollTo(0, 0);
+  } else if(h === '#favs' || h === '#notes' || h === '#cards' || h === '#practice'){
+    if(!$('home').hidden) homeScroll = window.scrollY;
+    if(h === '#practice' && !deckP.length && !practiceOn){ location.replace('#cards'); return; }
+    showList(h);
+    $('home').hidden = true; $('unitPage').hidden = true; $('listPage').hidden = false;
     window.scrollTo(0, 0);
   } else {
-    var wasUnit = !$('unitPage').hidden;
-    $('unitPage').hidden = true; $('home').hidden = false;
-    if(wasUnit) window.scrollTo(0, homeScroll);
+    var wasOther = !$('unitPage').hidden || !$('listPage').hidden;
+    $('unitPage').hidden = true; $('listPage').hidden = true; $('home').hidden = false;
+    renderDash(); if(!q.value.trim()) renderUnits();
+    if(wasOther) window.scrollTo(0, homeScroll);
   }
 }
 window.addEventListener('hashchange', route);
 $('backBtn').onclick = function(){
   if(history.length > 1) history.back(); else location.hash = '';
 };
+$('lpBack').onclick = function(){ if(history.length > 1) history.back(); else location.hash = ''; };
 
 /* ----- search box ----- */
 var q = $('q'), qClear = $('qClear');
@@ -395,7 +654,9 @@ function onSearch(){
 q.addEventListener('input', onSearch);
 qClear.onclick = function(){ q.value = ''; onSearch(); q.focus(); };
 
-renderUnits(); renderExtras(); route();
+renderDash(); renderUnits(); renderExtras(); route();
+window.addEventListener('pageshow', function(e){ if(e.persisted){ renderDash(); if(!q.value.trim()) renderUnits(); route(); } });
+document.addEventListener('visibilitychange', function(){ if(!document.hidden && !$('home').hidden){ renderDash(); if(!q.value.trim()) renderUnits(); } });
 })();
 </script>
 <script>
