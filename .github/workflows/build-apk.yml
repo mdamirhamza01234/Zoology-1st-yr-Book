@@ -27,10 +27,31 @@ jobs:
         run: npm install
 
       - name: Install icon tool
-        run: npm install @capacitor/assets --no-save
+        run: npm install @capacitor/assets sharp --no-save
 
       - name: Add Android project
         run: npx cap add android
+
+      - name: Disable overscroll
+        run: |
+          F=$(find android/app/src/main/java -name MainActivity.java | head -1)
+          PKG=$(grep -m1 '^package ' "$F" | sed 's/package //; s/;//')
+          cat > "$F" <<EOF
+          package $PKG;
+
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+              @Override
+              public void onStart() {
+                  super.onStart();
+                  if (getBridge() != null && getBridge().getWebView() != null) {
+                      getBridge().getWebView().setOverScrollMode(android.view.View.OVER_SCROLL_NEVER);
+                  }
+              }
+          }
+          EOF
+          cat "$F"
 
       - name: Prepare icon folder
         run: |
@@ -49,11 +70,34 @@ jobs:
       - name: Check icon files
         run: |
           test -f assets/icon-only.png || { echo "icon-only.png repo mein nahi mili"; exit 1; }
-          test -f assets/icon-foreground.png || { echo "icon-foreground.png repo mein nahi mili"; exit 1; }
+
+      - name: Make padded icon and splash
+        run: |
+          node - <<'JS'
+          const sharp = require('sharp');
+          const fs = require('fs');
+          (async () => {
+            const trimmed = await sharp('assets/icon-only.png').ensureAlpha().trim().toBuffer();
+            async function place(size, frac, bg) {
+              const t = Math.round(size * frac);
+              const logo = await sharp(trimmed).resize(t, t, { fit: 'inside' }).toBuffer();
+              return sharp({ create: { width: size, height: size, channels: 4, background: bg } })
+                .composite([{ input: logo, gravity: 'centre' }]).png().toBuffer();
+            }
+            const clear = { r: 0, g: 0, b: 0, alpha: 0 };
+            const green = { r: 11, g: 37, b: 33, alpha: 1 };
+            fs.writeFileSync('assets/icon-foreground.png', await place(1024, 0.54, clear));
+            fs.writeFileSync('assets/splash.png', await place(2732, 0.4, green));
+            fs.writeFileSync('assets/splash-dark.png', await place(2732, 0.4, green));
+            fs.writeFileSync('www/app-logo.png', await sharp(trimmed).resize(512, 512, { fit: 'inside' }).png().toBuffer());
+            console.log('icon, splash aur app-logo ban gaye');
+          })();
+          JS
+          ls -la assets www
 
       - name: Make app icons
         # Icon ka background colour yahan hai (dono jagah same rakho)
-        run: npx capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#0B2521' --iconBackgroundColorDark '#0B2521'
+        run: npx capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#0B2521' --iconBackgroundColorDark '#0B2521' --splashBackgroundColor '#0B2521' --splashBackgroundColorDark '#0B2521'
 
       - name: Fix icon background
         run: |
