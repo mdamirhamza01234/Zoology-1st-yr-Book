@@ -126,9 +126,15 @@
 
   .empty{text-align:center; color:var(--soft); font-size:14.5px; padding:40px 20px; line-height:1.6;}
   .foot{margin:30px 0 0; text-align:center; font-size:12px; color:var(--faint);}
+  #splash{position:fixed; inset:0; z-index:9999; background:#0B2521; display:flex; align-items:center; justify-content:center; transition:opacity .55s ease;}
+  #splash.hide{opacity:0; pointer-events:none;}
+  #splash img{width:min(68vw,340px); height:auto; animation:splashPop .8s ease both;}
+  @keyframes splashPop{from{opacity:0; transform:scale(.85);} to{opacity:1; transform:scale(1);}}
 </style>
 </head>
 <body>
+<div id="splash"><img src="app-logo.png" alt=""></div>
+
 
 <!-- ============ HOME ============ -->
 <main id="home" class="wrap">
@@ -390,6 +396,16 @@ q.addEventListener('input', onSearch);
 qClear.onclick = function(){ q.value = ''; onSearch(); q.focus(); };
 
 renderUnits(); renderExtras(); route();
+})();
+</script>
+<script>
+(function(){
+  var sp = document.getElementById("splash"); if(!sp) return;
+  var seen = false; try { seen = sessionStorage.getItem("splashDone") === "1"; } catch(e){}
+  if(seen){ sp.parentNode.removeChild(sp); return; }
+  try { sessionStorage.setItem("splashDone", "1"); } catch(e){}
+  setTimeout(function(){ sp.classList.add("hide"); }, 2300);
+  setTimeout(function(){ if(sp.parentNode) sp.parentNode.removeChild(sp); }, 2950);
 })();
 </script>
 </body>
