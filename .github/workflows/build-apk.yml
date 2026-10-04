@@ -35,16 +35,21 @@ jobs:
       - name: Prepare icon folder
         run: |
           mkdir -p assets
-          for f in icon-only.png icon-foreground.png; do
-            src=$(find . -path ./node_modules -prune -o -path ./android -prune -o -name "$f" -print | grep -v '^./assets/' | head -1)
-            if [ -n "$src" ]; then cp "$src" "assets/$f"; fi
-          done
+          echo "=== Repo mein ye PNG files mili ==="
+          find . -type f -iname "*.png" -not -path "./node_modules/*" -not -path "./android/*" -not -path "./.git/*"
+          echo "==================================="
+          only=$(find . -type f -iname "*icon*only*.png" -not -path "./node_modules/*" -not -path "./android/*" | head -1)
+          fore=$(find . -type f -iname "*icon*foreground*.png" -not -path "./node_modules/*" -not -path "./android/*" | head -1)
+          echo "only = $only"
+          echo "foreground = $fore"
+          if [ -n "$only" ] && [ "$only" != "./assets/icon-only.png" ]; then cp "$only" assets/icon-only.png; fi
+          if [ -n "$fore" ] && [ "$fore" != "./assets/icon-foreground.png" ]; then cp "$fore" assets/icon-foreground.png; fi
           ls -la assets
 
       - name: Check icon files
         run: |
-          test -f assets/icon-only.png
-          test -f assets/icon-foreground.png
+          test -f assets/icon-only.png || { echo "icon-only.png repo mein nahi mili"; exit 1; }
+          test -f assets/icon-foreground.png || { echo "icon-foreground.png repo mein nahi mili"; exit 1; }
 
       - name: Make app icons
         # Icon ka background colour yahan hai (dono jagah same rakho)
@@ -80,8 +85,14 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
+      - name: Rename APK
+        run: |
+          mkdir -p out
+          cp android/app/build/outputs/apk/debug/app-debug.apk out/BSC-Zoology-1st-Year.apk
+          ls -la out
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: BSC-Zoology-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: out/BSC-Zoology-1st-Year.apk
